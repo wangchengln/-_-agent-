@@ -1,0 +1,145 @@
+{
+  "round": 1,
+  "items": [
+    {
+      "item": {
+        "id": "B001A0LXYZ",
+        "name": "武康路历史文化名街",
+        "type": "风景名胜;历史建筑",
+        "typecode": "110200",
+        "address": "上海市徐汇区武康路",
+        "location": {
+          "lng": 121.4374,
+          "lat": 31.2043,
+          "city": "上海",
+          "adcode": "310104",
+          "address": "上海市徐汇区"
+        },
+        "rating": 4.7,
+        "cost": null,
+        "cost_numeric": null,
+        "distance_m": 850.0,
+        "tel": null,
+        "tags": ["文艺", "历史建筑", "CityWalk", "室外"],
+        "description": "武康路历史文化名街 风景名胜;历史建筑 上海市徐汇区武康路 上海 文艺 历史建筑 CityWalk 室外 评分4.7",
+        "photos": [],
+        "raw": null
+      },
+      "rank": 1,
+      "score": 0.92,
+      "breakdown": {
+        "filter_passed": true,
+        "matcher_semantic": 0.78,
+        "matcher_collaborative": 0.18,
+        "attenuator": -0.04,
+        "total": 0.92
+      }
+    },
+    {
+      "item": {
+        "id": "B002B1MNPQ",
+        "name": "西岸美术馆",
+        "type": "科教文化服务;美术馆",
+        "typecode": "140400",
+        "address": "上海市徐汇区龙腾大道2600号",
+        "location": {
+          "lng": 121.4638,
+          "lat": 31.1675,
+          "city": "上海",
+          "adcode": "310104",
+          "address": "上海市徐汇区"
+        },
+        "rating": 4.6,
+        "cost": "80.00",
+        "cost_numeric": 80.0,
+        "distance_m": 4200.0,
+        "tel": "021-12345678",
+        "tags": ["文艺", "展览", "室内", "江景"],
+        "description": "西岸美术馆 科教文化服务;美术馆 上海市徐汇区龙腾大道2600号 上海 文艺 展览 室内 江景 评分4.6 80.00",
+        "photos": [],
+        "raw": null
+      },
+      "rank": 2,
+      "score": 0.87,
+      "breakdown": {
+        "filter_passed": true,
+        "matcher_semantic": 0.74,
+        "matcher_collaborative": 0.16,
+        "attenuator": -0.03,
+        "total": 0.87
+      }
+    },
+    {
+      "item": {
+        "id": "B003C2RSTU",
+        "name": "徐汇滨江绿道",
+        "type": "风景名胜;公园",
+        "typecode": "110101",
+        "address": "上海市徐汇区龙腾大道沿线",
+        "location": {
+          "lng": 121.4582,
+          "lat": 31.1712,
+          "city": "上海",
+          "adcode": "310104",
+          "address": "上海市徐汇区"
+        },
+        "rating": 4.5,
+        "cost": null,
+        "cost_numeric": null,
+        "distance_m": 3800.0,
+        "tel": null,
+        "tags": ["自然", "亲子", "骑行", "室外", "免费"],
+        "description": "徐汇滨江绿道 风景名胜;公园 上海市徐汇区龙腾大道沿线 上海 自然 亲子 骑行 室外 免费 评分4.5",
+        "photos": [],
+        "raw": null
+      },
+      "rank": 3,
+      "score": 0.81,
+      "breakdown": {
+        "filter_passed": true,
+        "matcher_semantic": 0.69,
+        "matcher_collaborative": 0.15,
+        "attenuator": -0.03,
+        "total": 0.81
+      }
+    }
+  ],
+  "preference_snapshot": {
+    "version": 1,
+    "anchor": {
+      "lng": 121.4737,
+      "lat": 31.2304,
+      "city": "上海",
+      "adcode": "310101",
+      "address": "上海市黄浦区人民广场"
+    },
+    "positive_hard": {
+      "radius_m": 5000,
+      "categories": ["风景名胜", "科教文化服务"],
+      "max_price": 150.0,
+      "min_rating": 4.0,
+      "open_now": true,
+      "venue_type": "any"
+    },
+    "positive_soft": {
+      "tags": ["文艺", "CityWalk", "周末放松"],
+      "keywords": ["适合拍照", "不太商业化"],
+      "cuisine_types": []
+    },
+    "negative_hard": {
+      "exclude_categories": ["商场", "购物服务"],
+      "exclude_poi_ids": [],
+      "exclude_tags": ["大型综合体"]
+    },
+    "negative_soft": {
+      "dislike_tags": ["人多", "排队久"],
+      "dislike_keywords": ["过于网红", "太吵"]
+    },
+    "updated_at": 1718784000.0,
+    "source_command": "帮我推荐上海周末文艺一点的室外活动，别去商场，不要太远"
+  },
+  "generated_at": 1718784001.0,
+  "user_command": "帮我推荐上海周末文艺一点的室外活动，别去商场，不要太远",
+  "total_candidates": 48,
+  "k": 5
+}
