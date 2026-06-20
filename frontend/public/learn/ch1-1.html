@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #fafafa; color: #333; line-height: 1.8;
+    padding: 2em 2.5em 4em;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1 {
+    font-size: 1.6em; font-weight: 800; margin-bottom: 0.3em;
+    background: linear-gradient(135deg, #B8860B, #D4AF37);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  h1 .sub { display: block; font-size: 0.55em; font-weight: 500; color: #888; -webkit-text-fill-color: #888; margin-top: 0.2em; }
+  h2 { font-size: 1.2em; font-weight: 700; margin: 2em 0 0.6em; color: #333; border-bottom: 2px solid #B8860B; padding-bottom: 0.3em; }
+  h3 { font-size: 1.05em; font-weight: 600; margin: 1.2em 0 0.4em; color: #444; }
+  h4 { font-size: 0.95em; font-weight: 600; margin: 1em 0 0.3em; color: #555; }
+  p { margin: 0.5em 0; color: #555; }
+  strong { color: #333; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; background: rgba(184,134,11,0.1); color: #B8860B; }
+  .badge-group { display: flex; gap: 6px; flex-wrap: wrap; margin: 0.5em 0 1.5em; }
+  .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.3em; margin: 0.8em 0; box-shadow: 0 1px 4px rgba(0,0,0,0.04); transition: transform 0.2s, box-shadow 0.2s; }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .card h3 { margin-top: 0; }
+  .card h4 { margin-top: 0; }
+  .card-accent { border-left: 3px solid #B8860B; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8em; }
+  @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+  code { background: rgba(184,134,11,0.08); padding: 1px 6px; border-radius: 4px; font-size: 0.88em; color: #B8860B; font-family: "Fira Code", "Cascadia Code", monospace; }
+  pre { background: #1e1e2e; color: #cdd6f4; border-radius: 10px; padding: 1em 1.2em; margin: 0.8em 0; overflow-x: auto; font-size: 0.85em; line-height: 1.6; font-family: "Fira Code", "Cascadia Code", monospace; }
+  pre code { background: none; color: inherit; padding: 0; }
+  ul, ol { padding-left: 1.5em; }
+  li { margin: 0.3em 0; }
+  .steps { counter-reset: step; }
+  .step { counter-increment: step; position: relative; padding-left: 3em; margin: 1.2em 0; }
+  .step::before { content: counter(step); position: absolute; left: 0; top: 0; width: 2em; height: 2em; background: linear-gradient(135deg, #B8860B, #D4AF37); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85em; font-weight: 700; box-shadow: 0 2px 8px rgba(184,134,11,0.3); }
+  .highlight { background: linear-gradient(135deg, rgba(184,134,11,0.06), rgba(212,175,55,0.06)); border: 1px solid rgba(184,134,11,0.15); border-radius: 10px; padding: 1em 1.2em; margin: 1em 0; }
+  .highlight strong { color: #B8860B; }
+  .callout { display: flex; gap: 0.8em; padding: 1em; border-radius: 10px; background: #fffbeb; border: 1px solid #fde68a; margin: 1em 0; }
+  .callout-icon { font-size: 1.3em; line-height: 1; }
+  .callout-body { flex: 1; }
+  .callout-body p { margin: 0; color: #92400e; }
+  .compare-table { width: 100%; border-collapse: collapse; margin: 1em 0; font-size: 0.88em; }
+  .compare-table th { background: linear-gradient(135deg, #B8860B, #D4AF37); color: #fff; padding: 0.6em 0.8em; text-align: left; font-weight: 600; }
+  .compare-table td { padding: 0.5em 0.8em; border-bottom: 1px solid #e5e7eb; }
+  .compare-table tr:hover td { background: rgba(184,134,11,0.04); }
+  .icon-card { display: flex; gap: 1em; align-items: flex-start; padding: 1.2em; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; margin: 0.6em 0; transition: transform 0.2s, box-shadow 0.2s; }
+  .icon-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .icon-card .icon { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, rgba(184,134,11,0.1), rgba(212,175,55,0.1)); display: flex; align-items: center; justify-content: center; font-size: 1.2em; flex-shrink: 0; }
+  .icon-card .content { flex: 1; }
+  .icon-card .content h3, .icon-card .content h4 { margin: 0 0 0.2em; font-size: 0.95em; }
+  .icon-card .content p { margin: 0; font-size: 0.88em; }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, #B8860B, transparent); margin: 2em 0; border: none; }
+  .zoomable { cursor: zoom-in; max-width: 100%; border-radius: 8px; border: 1px solid #e5e7eb; transition: box-shadow 0.2s; display: block; margin: 0.8em auto; }
+  .zoomable:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.12); }
+  .lightbox { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; cursor: zoom-out; }
+  .lightbox.active { display: flex; }
+  .lightbox img { max-width: 92vw; max-height: 92vh; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  .lightbox-close { position: fixed; top: 16px; right: 16px; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.15); color: #fff; border: none; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .lightbox-close:hover { background: rgba(255,255,255,0.3); }
+  .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .video-player { width: 100%; max-width: 100%; border-radius: 10px; margin: 0.8em 0; border: 1px solid #e5e7eb; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .img-gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6em; margin: 0.8em 0; }
+  .img-gallery img { width: 100%; }
+  @media (max-width: 500px) { .img-gallery { grid-template-columns: 1fr; } }
+  .banner-img { max-width: 60%; display: block; margin: 0 auto 1.5em; border-radius: 8px; }
+  .qr-img { max-width: 200px; display: block; margin: 0.5em auto; border-radius: 8px; }
+</style>
+</head>
+<body>
+
+<!-- ===== 课件领取横幅 ===== -->
+<div style="text-align:center; margin-bottom: 1.5em;" class="reveal">
+  <img class="banner-img zoomable" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/00408e89ca2433b6c508b0cc0dd67568.png" alt="课程封面" onclick="openLightbox(this.src)" />
+</div>
+
+<h1>
+  Ch 1. Agent Skills 基础入门
+  <span class="sub">一、Agent Skills：新一代 Agent 开发基本范式</span>
+</h1>
+
+<div class="badge-group">
+  <span class="badge">AI Agent</span>
+  <span class="badge">Agent Skills</span>
+  <span class="badge">OpenClaw</span>
+  <span class="badge">Skill-First</span>
+  <span class="badge">范式革命</span>
+</div>
+
+<div class="callout reveal">
+  <div class="callout-icon">📋</div>
+  <div class="callout-body">
+    <p><strong>课件领取：</strong>扫码添加助教获取完整课件资料</p>
+  </div>
+</div>
+<div style="text-align:center;" class="reveal">
+  <img class="qr-img zoomable" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/0.png" alt="课件领取二维码" onclick="openLightbox(this.src)" />
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 1. Cowork+Skills "血洗华尔街" ==================== -->
+<h2 class="reveal">1. Cowork + Skills "血洗华尔街"</h2>
+
+<h3 class="reveal">1.1 引言：当技术击穿商业护城河</h3>
+
+<p class="reveal">在开始探讨 <strong>Agent Skills</strong> 的技术细节之前，我们需要先理解这项技术为何在面世之初就引发了巨大的震动。</p>
+
+<p class="reveal">2026年2月5日，这一天在科技史和金融史上被标记为 <strong>"SaaS 末日" (SaaS Apocalypse)</strong>。Anthropic 并没有发布更强参数的基础模型，而是发布了一款名为 <strong>Claude Cowork</strong> 的 Agent 产品，以及配套的 <strong>11 个标准化 Skills（技能包）</strong>。</p>
+
+<img class="zoomable reveal" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211174808900.png" alt="Claude Cowork 发布" onclick="openLightbox(this.src)" />
+
+<div class="highlight reveal">
+  <p>这次看似常规的功能更新，直接导致纳斯达克软件板块单日蒸发 <strong>2850 亿美元</strong>（约合人民币 2 万亿元）。这一事件并非单纯的资本市场恐慌，它揭示了一个深刻的技术范式转移：<strong>传统的"软件+图形界面"交付模式，正在被"Agent+Skills"的自动化交付模式所解构。</strong></p>
+</div>
+
+<img class="zoomable reveal" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211174445939.png" alt="SaaS 末日市场反应" onclick="openLightbox(this.src)" />
+
+<hr class="divider">
+
+<!-- ===== 1.2 核心事件复盘 ===== -->
+<h3 class="reveal">1.2 核心事件复盘：11 个"硅基员工"的降临</h3>
+
+<p class="reveal">事件的导火索是 Anthropic 发布的 11 个垂直领域 Skills。这些 Skills 并非简单的 API 接口，而是封装了完整业务逻辑（SOP）的独立单元。</p>
+
+<div class="card card-accent reveal">
+  <h4>技术形态</h4>
+  <p>这些 Skills 覆盖了销售、财务、市场营销、法律等核心企业职能。用户只需在 Claude Cowork 中加载对应的 Skill，Agent 即可瞬间获得该领域的专家级处理能力。</p>
+</div>
+
+<div class="card card-accent reveal">
+  <h4>市场反应</h4>
+  <ul>
+    <li><strong>高盛软件股组合</strong>：暴跌 6%，创下近年最大单日跌幅</li>
+    <li><strong>垂直领域 SaaS 巨头</strong>：法律科技公司 LegalZoom 暴跌 20%，信息服务商汤森路透暴跌 16%</li>
+    <li><strong>恐慌逻辑</strong>：投资者意识到，如果 Agent 可以通过加载 Skill 直接完成任务，企业将不再需要购买昂贵且复杂的 SaaS 软件订阅</li>
+  </ul>
+</div>
+
+<img class="zoomable reveal" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211174703849.png" alt="市场暴跌数据" onclick="openLightbox(this.src)" />
+
+<p class="reveal">在过去，一家企业为了处理合同审查和合规检查，通常需要采购如 Harvey AI 或汤森路透的专业软件。这不仅意味着每年数万美元的订阅成本，更意味着企业员工需要学习一套复杂的软件操作界面（UI），手动导入文档、配置规则、逐条复核。</p>
+
+<div class="highlight reveal">
+  <p><strong>Agent Skills 改变了这一切：</strong></p>
+</div>
+
+<p class="reveal">当 Claude 加载了 <strong>"Legal Skill"</strong> 后，它获得了一套标准化的法律工作流：</p>
+
+<div class="steps reveal">
+  <div class="step"><strong>直接读取</strong> — Agent 直接访问企业云盘中的合同文件。</div>
+  <div class="step"><strong>动态调用</strong> — 根据 Skill 定义的 SOP，自动进行风险比对和条款审查。</div>
+  <div class="step"><strong>结果交付</strong> — 直接输出合规报告，完全绕过了第三方软件的 UI 界面。</div>
+</div>
+
+<div class="callout reveal">
+  <div class="callout-icon">🔑</div>
+  <div class="callout-body">
+    <p><strong>技术洞察：</strong>这一转变证明了 <strong>"界面即阻碍"</strong>。在 Agent 时代，用户不再需要一个"好用的工具"，用户需要的是"直接的结果"。Agent Skills 使得软件从"人机交互的界面"退化为"Agent 调用的后端能力"。</p>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== 1.3 范式总结 ===== -->
+<h3 class="reveal">1.3 范式总结：从 App-First 到 Skill-First</h3>
+
+<p class="reveal">英伟达 CEO 黄仁勋在事后评论道："认为 AI 会取代软件是不合逻辑的，SaaS 只是变成了基础设施。"这句话精准地点出了 Agent Skills 的本质。</p>
+
+<div class="highlight reveal">
+  <p><strong>Agent Skills 并没有消灭软件，它消灭的是软件的"独立入口权"。</strong></p>
+</div>
+
+<div class="grid reveal">
+  <div class="card card-accent">
+    <h4>旧范式（App-First）</h4>
+    <p>开发独立的应用程序，设计复杂的 GUI，争夺用户注意力。</p>
+  </div>
+  <div class="card card-accent">
+    <h4>新范式（Skill-First）</h4>
+    <p>开发标准化的 Skills，封装核心数据与逻辑，供 Agent 动态调用。</p>
+  </div>
+</div>
+
+<p class="reveal">在接下来的课程中，我们将深入 OpenClaw 等开源项目，学习如何亲手构建这样的 Agent Skills，掌握这套能够"血洗华尔街"的技术架构。</p>
+
+<hr class="divider">
+
+<!-- ==================== 2. OpenClaw ==================== -->
+<h2 class="reveal">2. OpenClaw：Agent Skills 最佳开源实践</h2>
+
+<h3 class="reveal">2.1 现象级崛起：从开源项目到"AI 操作系统"</h3>
+
+<p class="reveal">如果说 Anthropic 的 Claude Cowork 是 AI 时代的 iOS——精致、封闭且强大；那么 <strong>OpenClaw</strong> 无疑就是 AI 时代的 Android——开放、庞大且充满无限可能。</p>
+
+<p class="reveal">截至 2026 年 2 月，OpenClaw 在 GitHub 上的 Star 数已逼近 <strong>200,000</strong> 大关。这是一个令所有开源项目都难以望其项背的数字。它不仅超越了当年的 AutoGPT 和 LangChain，更成为了全球开发者在构建 Agent 应用时的首选架构。</p>
+
+<img class="zoomable reveal" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211175602459.png" alt="OpenClaw GitHub Stars" onclick="openLightbox(this.src)" />
+
+<div class="callout reveal">
+  <div class="callout-icon">💡</div>
+  <div class="callout-body">
+    <p>OpenClaw 之所以能引发如此大规模的"开发者迁徙"，核心原因在于它精准地复刻并超越了 Cowork 的模式：<strong>它不仅仅是一个聊天机器人，而是一个可动态加载无限能力的"技能容器"。</strong></p>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== 2.2 核心架构 ===== -->
+<h3 class="reveal">2.2 核心架构：Everything is a Skill (万物皆技能)</h3>
+
+<p class="reveal">OpenClaw 的设计哲学非常激进：<strong>"Skill-First"（技能优先），即核心只负责调度，一切能力皆由 Skills 动态挂载。</strong></p>
+
+<p class="reveal">这种架构彻底颠覆了传统 Agent 的开发模式：</p>
+
+<div class="grid reveal">
+  <div class="card card-accent">
+    <h4>传统 Agent</h4>
+    <p>将所有 Prompt、Tools 和 Python 脚本硬编码在主程序中，导致代码臃肿，难以维护，且 Context Window 极易溢出。</p>
+  </div>
+  <div class="card card-accent">
+    <h4>OpenClaw Agent</h4>
+    <p>主程序是空的。只有当用户发出任务时，系统才会从 <strong>ClawHub</strong> 动态拉取对应 Skill，加载到内存中执行。任务结束后，技能卸载，释放资源。</p>
+  </div>
+</div>
+
+<p class="reveal">这种"即插即用"的架构，使得 OpenClaw 成为了事实上的 <strong>AI 应用入口</strong>。用户不再需要安装 100 个不同的 AI 应用，只需要在 OpenClaw 中挂载 100 个不同的 Skills。</p>
+
+<hr class="divider">
+
+<!-- ===== 2.3 生态中心 ===== -->
+<h3 class="reveal">2.3 生态中心：ClawHub.ai</h3>
+
+<p class="reveal">OpenClaw 的护城河并非代码本身，而是其背后庞大的技能生态平台——<strong>ClawHub (clawhub.ai)</strong>。这里汇聚了全球开发者贡献的超过 50,000 个标准化 Skills。无论你是需要一个 K8s 集群管理技能，还是需要一个小红书热帖追踪，都能在 ClawHub 上一键获取。</p>
+
+<img class="zoomable reveal" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211175813522.png" alt="ClawHub 生态平台" onclick="openLightbox(this.src)" />
+
+<div class="grid reveal">
+  <div class="icon-card">
+    <div class="icon">📦</div>
+    <div class="content">
+      <h4>标准化协议</h4>
+      <p>所有 Skill 都遵循统一的 <code>skill.yaml</code> 定义标准，确保在任何 OpenClaw 实例中都能 100% 兼容运行。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">♻️</div>
+    <div class="content">
+      <h4>社区复用</h4>
+      <p>开发者不再需要重复造轮子。以前写一个"爬取网页并总结"的功能需要半天，现在只需要在 ClawHub 上下载对应技能即可。</p>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== 2.4 杀手级特性 ===== -->
+<h3 class="reveal">2.4 杀手级特性：自主进化与技能提炼</h3>
+
+<p class="reveal">让 OpenClaw 真正拉开与竞争对手差距的，是其 <strong>"Autonomous Skill Refinement"（自主技能提炼）</strong> 机制。<strong>OpenClaw 不仅能使用 Skill，还能创造 Skill。</strong></p>
+
+<div class="card card-accent reveal">
+  <h4>使用即开发</h4>
+  <p>例如，当你指挥 OpenClaw 完成了一项复杂的、从未有过定义的新任务（例如："每天早上 8 点去爬取 arXiv 最新论文，翻译摘要，并发送到我的飞书群"）后，你就可以让 OpenClaw 将其固化为一项 Skill。</p>
+  <p>OpenClaw 会自动将刚才的操作步骤、Prompt 策略、API 调用逻辑打包成一个标准的 Skill 文件。用户可以将这个 Skill 上传到 ClawHub 分享，或者私有化部署。</p>
+</div>
+
+<div class="callout reveal">
+  <div class="callout-icon">🎯</div>
+  <div class="callout-body">
+    <p>这种 <strong>"使用即开发"</strong> 的特性，极大地降低了 Agent 开发的门槛，也是它被誉为"最佳开源实践"的根本原因。</p>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== 2.5 行业落地案例 ===== -->
+<h3 class="reveal">2.5 行业落地案例 (Showcase)</h3>
+
+<p class="reveal">在 <strong>openclaw.ai/showcase</strong>，我们可以看到 Agent Skills 技术是如何在真实世界中解决具体问题的：</p>
+
+<div class="img-gallery reveal">
+  <img class="zoomable" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211175254135.png" alt="Showcase 案例 1" onclick="openLightbox(this.src)" />
+  <img class="zoomable" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211175420068.png" alt="Showcase 案例 2" onclick="openLightbox(this.src)" />
+</div>
+<div class="img-gallery reveal">
+  <img class="zoomable" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211175446778.png" alt="Showcase 案例 3" onclick="openLightbox(this.src)" />
+  <img class="zoomable" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211180026542.png" alt="Showcase 案例 4" onclick="openLightbox(this.src)" />
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 3. 正在成为新范式 ==================== -->
+<h2 class="reveal">3. Agent Skills 正在成为新一代 Agent 开发基本范式</h2>
+
+<h3 class="reveal">3.1 高度专业的垂域 Agent 开发还是基座 + Skills？</h3>
+
+<p class="reveal">在 Agent 技术发展的早期（2023-2024年），业界普遍存在一种迷思：<strong>"要解决垂直领域的问题，必须构建垂直领域的 Agent。"</strong></p>
+
+<p class="reveal">那时的开发者认为，要开发一个"法律顾问 Agent"，必须收集海量法律文书进行微调（Fine-tuning），构建复杂的专用 RAG 系统，甚至重新设计模型架构。这种方式成本极高，周期极长，被称为 <strong>"重型开发模式"</strong>。</p>
+
+<p class="reveal">然而，随着 Agent Skills 技术的成熟，我们发现了一种全新的 <strong>"轻型解决思路"</strong>：</p>
+
+<div class="highlight reveal">
+  <p><strong>通用大模型（Base Model） + 特定技能包（Agent Skills） = 解决垂域问题</strong></p>
+</div>
+
+<p class="reveal">为什么这种看似"偷懒"的组合，反而成为了主流？这主要由两个核心因素驱动：</p>
+
+<div class="card card-accent reveal">
+  <h4>因素一：业务场景的"二八定律"与通用化需求</h4>
+  <ul>
+    <li><strong>现象</strong>：在绝大多数商业场景中，用户并不需要一个"法学博士"级别的 AI。例如：一家普通公司审核一份采购合同，或者初创企业草拟一份保密协议（NDA）。</li>
+    <li><strong>本质</strong>：这些任务虽然属于"法律垂域"，但其所需的知识是标准化的、流程是通用的。</li>
+    <li><strong>结论</strong>：对于这 80% 的通用化垂域场景，我们不需要训练一个昂贵的专用模型。只需要给一个足够聪明的通用 Agent 挂载一个包含 <strong>法律 SOP</strong> 和 <strong>合规检查清单</strong> 的 Skill，它就能以 90 分的水平完成任务。<strong>Skill 的本质，就是将专家的经验封装成大模型可读的"外挂"。</strong></li>
+  </ul>
+</div>
+
+<div class="card card-accent reveal">
+  <h4>因素二：基座模型能力的"摩尔定律"</h4>
+  <ul>
+    <li><strong>现象</strong>：2026 年的通用基座模型（如 GPT-5, Claude 4.5 级别），其基础逻辑推理能力和泛化能力，已经远超 2024 年经过微调的专用小模型。</li>
+    <li><strong>对比</strong>：
+      <ul>
+        <li><strong>2024 年专用法律 Agent</strong>：虽然经过微调，但底座智商有限，稍微遇到复杂的逻辑陷阱就会"幻觉"。</li>
+        <li><strong>2026 年通用 Agent + Legal Skill</strong>：底座智商极高，理解力强，配合 Skill 提供的精确指令，其表现反而优于旧时代的专用模型。</li>
+      </ul>
+    </li>
+    <li><strong>结论</strong>：当基座足够强时，我们不再通过"改模型"来适应任务，而是通过"给技能"来适应任务。</li>
+  </ul>
+</div>
+
+<div class="callout reveal">
+  <div class="callout-icon">⚠️</div>
+  <div class="callout-body">
+    <p><strong>反思：垂域 Agent 开发已死？答案是否定的。</strong></p>
+    <p>通用 Agent + Skills 只能解决 <strong>"标准化"</strong> 和 <strong>"中等复杂度"</strong> 的问题。在某些高度专业、逻辑深度极深的领域，垂域 Agent 依然是不可替代的王者。</p>
+  </div>
+</div>
+
+<div class="card reveal">
+  <h4>典型案例：编程 Agent (Coding Agents)</h4>
+  <ul>
+    <li>尽管通用模型能写代码，但在构建大型系统、进行全库重构或解决复杂并发 Bug 时，通用 Agent 往往力不从心。</li>
+    <li>这也是为什么 <strong>Claude Code</strong>、Codex 依然独立存在的原因。编程不仅需要 Skill，更需要对模型本身进行针对代码逻辑的强化训练，甚至需要配合专门的编译器环境和沙箱系统。</li>
+  </ul>
+  <div class="highlight" style="margin-top: 0.8em;">
+    <p><strong>"基座+Skills"横扫了 80% 的应用场景，而剩下的 20% 硬骨头（如科研、高端医疗、核心系统编程），依然是垂域 Agent 的护城河。</strong></p>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== 3.2 必知必会 ===== -->
+<h3 class="reveal">3.2 2026 大模型工程师必知必会：Agent Skills</h3>
+
+<p class="reveal">为了更快速高效地完成通用领域的 Agent 开发，大模型开发工程师需要进一步掌握如下三方面核心技能：</p>
+
+<div class="reveal">
+  <div class="icon-card">
+    <div class="icon">📖</div>
+    <div class="content">
+      <h4>学会上手使用 Skills</h4>
+      <p>理解 Agent Skills 的标准运行机制，能够在现有生态（如 Anthropic 或 OpenClaw）中快速检索、配置并调用成熟的技能包来解决实际业务问题。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">🔧</div>
+    <div class="content">
+      <h4>学会创建 Skills</h4>
+      <p>掌握如何将特定的业务 SOP、Prompt 策略、外部工具链（Tools）以及私有知识，打包封装成可复用、标准化的 Skill 文件。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">🏗️</div>
+    <div class="content">
+      <h4>学会搭建兼容 Skills 的 Agent</h4>
+      <p>深入理解"核心极简"的解耦架构，能够从底层开发出支持动态挂载、卸载和智能调度 Skills 的 Agent 运行环境。</p>
+    </div>
+  </div>
+</div>
+
+<p class="reveal">本期公开课，我们就沿着这个目标开始学习。</p>
+
+<hr class="divider">
+
+<!-- ===== 核心项目演示 ===== -->
+<h3 class="reveal">核心项目：FuFan OpenClaw 项目演示</h3>
+
+<div class="card reveal" style="text-align: center;">
+  <video class="video-player" controls preload="metadata">
+    <source src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/df634166ae519e6288e31c7af4e43ac3_raw.mp4" type="video/mp4">
+    您的浏览器不支持视频播放
+  </video>
+  <p style="font-size: 0.85em; color: #888; margin-top: 0.5em;">FuFan OpenClaw 功能演示视频</p>
+</div>
+
+<!-- ==================== LIGHTBOX ==================== -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+  <img id="lightbox-img" src="" alt="Preview" />
+</div>
+
+<script>
+  function openLightbox(src) {
+    var lb = document.getElementById('lightbox');
+    var img = document.getElementById('lightbox-img');
+    img.src = src;
+    lb.classList.add('active');
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('active');
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeLightbox();
+  });
+  (function() {
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(function(el) {
+      observer.observe(el);
+    });
+  })();
+</script>
+</body>
+</html>

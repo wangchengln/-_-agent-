@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #fafafa; color: #333; line-height: 1.8;
+    padding: 2em 2.5em 4em;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1 {
+    font-size: 1.6em; font-weight: 800; margin-bottom: 0.3em;
+    background: linear-gradient(135deg, #B8860B, #D4AF37);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  h1 .sub { display: block; font-size: 0.55em; font-weight: 500; color: #888; -webkit-text-fill-color: #888; margin-top: 0.2em; }
+  h2 { font-size: 1.2em; font-weight: 700; margin: 2em 0 0.6em; color: #333; border-bottom: 2px solid #B8860B; padding-bottom: 0.3em; }
+  h3 { font-size: 1.05em; font-weight: 600; margin: 1.2em 0 0.4em; color: #444; }
+  h4 { font-size: 0.95em; font-weight: 600; margin: 1em 0 0.3em; color: #555; }
+  p { margin: 0.5em 0; color: #555; }
+  strong { color: #333; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; background: rgba(184,134,11,0.1); color: #B8860B; }
+  .badge-group { display: flex; gap: 6px; flex-wrap: wrap; margin: 0.5em 0 1.5em; }
+  .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.3em; margin: 0.8em 0; box-shadow: 0 1px 4px rgba(0,0,0,0.04); transition: transform 0.2s, box-shadow 0.2s; }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .card h3 { margin-top: 0; }
+  .card h4 { margin-top: 0; }
+  .card-accent { border-left: 3px solid #B8860B; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8em; }
+  @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+  code { background: rgba(184,134,11,0.08); padding: 1px 6px; border-radius: 4px; font-size: 0.88em; color: #B8860B; font-family: "Fira Code", "Cascadia Code", monospace; }
+  pre { background: #1e1e2e; color: #cdd6f4; border-radius: 10px; padding: 1em 1.2em; margin: 0.8em 0; overflow-x: auto; font-size: 0.85em; line-height: 1.6; font-family: "Fira Code", "Cascadia Code", monospace; }
+  pre code { background: none; color: inherit; padding: 0; }
+  ul, ol { padding-left: 1.5em; }
+  li { margin: 0.3em 0; }
+  .steps { counter-reset: step; }
+  .step { counter-increment: step; position: relative; padding-left: 3em; margin: 1.2em 0; }
+  .step::before { content: counter(step); position: absolute; left: 0; top: 0; width: 2em; height: 2em; background: linear-gradient(135deg, #B8860B, #D4AF37); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85em; font-weight: 700; box-shadow: 0 2px 8px rgba(184,134,11,0.3); }
+  .highlight { background: linear-gradient(135deg, rgba(184,134,11,0.06), rgba(212,175,55,0.06)); border: 1px solid rgba(184,134,11,0.15); border-radius: 10px; padding: 1em 1.2em; margin: 1em 0; }
+  .highlight strong { color: #B8860B; }
+  .callout { display: flex; gap: 0.8em; padding: 1em; border-radius: 10px; background: #fffbeb; border: 1px solid #fde68a; margin: 1em 0; }
+  .callout-icon { font-size: 1.3em; line-height: 1; }
+  .callout-body { flex: 1; }
+  .callout-body p { margin: 0; color: #92400e; }
+  .compare-table { width: 100%; border-collapse: collapse; margin: 1em 0; font-size: 0.85em; }
+  .compare-table th { background: linear-gradient(135deg, #B8860B, #D4AF37); color: #fff; padding: 0.6em 0.6em; text-align: left; font-weight: 600; font-size: 0.9em; }
+  .compare-table td { padding: 0.5em 0.6em; border-bottom: 1px solid #e5e7eb; }
+  .compare-table tr:hover td { background: rgba(184,134,11,0.04); }
+  .icon-card { display: flex; gap: 1em; align-items: flex-start; padding: 1.2em; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; margin: 0.6em 0; transition: transform 0.2s, box-shadow 0.2s; }
+  .icon-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .icon-card .icon { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, rgba(184,134,11,0.1), rgba(212,175,55,0.1)); display: flex; align-items: center; justify-content: center; font-size: 1.2em; flex-shrink: 0; }
+  .icon-card .content { flex: 1; }
+  .icon-card .content h3, .icon-card .content h4 { margin: 0 0 0.2em; font-size: 0.95em; }
+  .icon-card .content p { margin: 0; font-size: 0.88em; }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, #B8860B, transparent); margin: 2em 0; border: none; }
+  .zoomable { cursor: zoom-in; max-width: 100%; border-radius: 8px; border: 1px solid #e5e7eb; transition: box-shadow 0.2s; display: block; margin: 0.8em auto; }
+  .zoomable:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.12); }
+  .lightbox { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; cursor: zoom-out; }
+  .lightbox.active { display: flex; }
+  .lightbox img { max-width: 92vw; max-height: 92vh; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  .lightbox-close { position: fixed; top: 16px; right: 16px; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.15); color: #fff; border: none; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .lightbox-close:hover { background: rgba(255,255,255,0.3); }
+  .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  /* Phase 标签 */
+  .phase-tag {
+    display: inline-block; padding: 3px 12px; border-radius: 6px; font-size: 0.8em; font-weight: 700;
+    background: linear-gradient(135deg, #B8860B, #D4AF37); color: #fff;
+    margin-bottom: 0.5em; letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<h1>
+  Ch 1. Agent Skills 基础入门
+  <span class="sub">二、Agent Skills 基础实现方法详解</span>
+</h1>
+
+<div class="badge-group">
+  <span class="badge">Skills 装载</span>
+  <span class="badge">SKILL.md</span>
+  <span class="badge">底层执行流程</span>
+  <span class="badge">系统设计</span>
+  <span class="badge">Context Engineering</span>
+</div>
+
+<!-- ==================== 1. Skills装载与调用流程 ==================== -->
+<h2 class="reveal">1. Agent Skills 装载与调用流程</h2>
+
+<p class="reveal">在理解了 Agent Skills 的商业价值后，很多同学可能会觉得这背后的技术一定非常复杂。其实恰恰相反，在 OpenClaw（以及 Claude Code 等现代架构）中，<strong>"教会"AI 一项新技能，往往只需要一份 Markdown 文档。</strong></p>
+
+<p class="reveal">本小节我们将通过一个名为 <strong>FuFan-OpenClaw</strong> 的教学环境（基于 OpenClaw 深度定制），从零开始演示如何让一个原本"甚至不知道今天是几号"的 Agent，瞬间掌握 <strong>实时天气查询</strong> 的能力。</p>
+
+<hr class="divider">
+
+<!-- ===== Step 1 ===== -->
+<h3 class="reveal">Step 1. 基准测试：裸机状态下的无助</h3>
+
+<p class="reveal">首先，我们启动 FuFan-OpenClaw。在没有任何外部 Skills 加载的情况下，Agent 仅依靠大模型的预训练知识进行回答。</p>
+
+<img class="zoomable reveal" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211182618962.png" alt="裸机状态测试 — Agent 无法回答天气查询" onclick="openLightbox(this.src)" />
+
+<hr class="divider">
+
+<!-- ===== Step 2 ===== -->
+<h3 class="reveal">Step 2. 核心操作：物理装载 Skill</h3>
+
+<p class="reveal">接下来，我们进行"技能注入"。操作非常原始且直观——<strong>文件拖拽</strong>。</p>
+
+<div class="steps reveal">
+  <div class="step">找到我们的目标技能文件夹 <code>get_weather</code></div>
+  <div class="step">将其直接拖入 FuFan-OpenClaw 后端的 <code>/skills</code> 目录下</div>
+</div>
+
+<img class="zoomable reveal" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211182901393.png" alt="拖拽技能文件夹到 skills 目录" onclick="openLightbox(this.src)" />
+
+<p class="reveal">我们打开 <code>get_weather</code> 文件夹，发现里面 <strong>只有一个 <code>SKILL.md</code> 文件</strong>。让我们看看它的内容：</p>
+
+<img class="zoomable reveal" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211182924731.png" alt="SKILL.md 文件内容" onclick="openLightbox(this.src)" />
+
+<div class="highlight reveal">
+  <p>这就是 Agent Skills 的核心秘密——<strong>用自然语言编程</strong>。这份文档其实就是写给 Agent 看的"SOP 操作手册"。</p>
+</div>
+
+<p class="reveal">它包含以下五个关键部分：</p>
+
+<div class="reveal">
+  <div class="icon-card">
+    <div class="icon">🪪</div>
+    <div class="content">
+      <h4>1. 元数据 (Metadata)</h4>
+      <p>顶部定义了 <code>name: get_weather</code>。这是技能的身份证，Agent 通过它在数千个技能中索引到目标。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">🎯</div>
+    <div class="content">
+      <h4>2. 使用场景 (Trigger)</h4>
+      <p>明确告诉 Agent："当用户询问某个城市的天气情况时使用此技能"。这是技能的 <strong>触发器</strong>。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">📋</div>
+    <div class="content">
+      <h4>3. 执行步骤 (SOP)</h4>
+      <p>这是最精彩的部分。它没有写代码，而是教 Agent <strong>如何使用工具</strong>：提取城市名 → 调用 <code>fetch_url</code> 工具 → 解析返回的 JSON 数据。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">💬</div>
+    <div class="content">
+      <h4>4. 示例 (Few-Shot)</h4>
+      <p>给出了一个"查询北京天气"的标准对话范例。这能极大提升 Agent 执行的稳定性，防止它胡乱输出。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">⚠️</div>
+    <div class="content">
+      <h4>5. 注意事项 (Constraints)</h4>
+      <p>比如"建议使用英文拼写城市名以提高准确性"。这是给 Agent 的 <strong>兜底策略</strong>。</p>
+    </div>
+  </div>
+</div>
+
+<img class="zoomable reveal" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211183005827.png" alt="SKILL.md 五大组成部分" onclick="openLightbox(this.src)" />
+
+<hr class="divider">
+
+<!-- ===== Step 3 ===== -->
+<h3 class="reveal">Step 3. 验证测试：技能觉醒</h3>
+
+<p class="reveal">文件放入后，无需重启服务器（FuFan-OpenClaw 支持热加载），我们再次输入同样的指令，Agent 最终回复北京天气信息。</p>
+
+<img class="zoomable reveal" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211183109658.png" alt="技能加载后成功查询天气" onclick="openLightbox(this.src)" />
+
+<hr class="divider">
+
+<!-- ===== 技术总结 ===== -->
+<h3 class="reveal">技术总结：为什么 Agent Skills 能引爆开发者生态？</h3>
+
+<p class="reveal">通过刚才的演示，相信大家已经感受到了 Agent Skills 的核心魅力。与传统的软件开发相比，它展现出了极低的技术门槛和极高的灵活性。</p>
+
+<div class="card card-accent reveal">
+  <h4>1. "自然语言编程" (Natural Language Programming)</h4>
+  <p>正如大家在 <code>SKILL.md</code> 中所见，我们要实现"天气查询"功能，并没有编写一行 Python 代码。我们只是用 <strong>中文</strong> 写了一段 SOP。</p>
+  <div class="highlight" style="margin-top: 0.5em;">
+    <p><strong>Agent Skills 将"编程"降维成了"写文档"。</strong>只要你逻辑清晰，能把业务流程写成说明书，你就能开发 Agent。这使得非技术人员（产品经理、法务、运营）也能成为 Agent 开发者。</p>
+  </div>
+</div>
+
+<div class="card card-accent reveal">
+  <h4>2. 极简的"热插拔"架构</h4>
+  <p>在 OpenClaw 的架构中，Skill 是完全解耦的静态文件。这意味着：</p>
+  <ul>
+    <li><strong>无需编译</strong>：修改 Skill 不需要重启服务</li>
+    <li><strong>无需环境配置</strong>：只要有通用的工具（如 Web Search, Python REPL），Skill 就能运行，不需要为每个功能单独配置 Docker 或依赖库</li>
+  </ul>
+</div>
+
+<div class="card card-accent reveal">
+  <h4>3. 对比 Function Calling 与 MCP：维度的胜利</h4>
+  <p>很多专业开发者会问："这和 OpenAI 的 Function Calling 或者 Anthropic 的 MCP 有什么区别？"</p>
+</div>
+
+<table class="compare-table reveal">
+  <thead>
+    <tr>
+      <th>维度</th>
+      <th>Function Calling</th>
+      <th>MCP</th>
+      <th>Agent Skills</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>核心定义</strong></td>
+      <td>代码级接口</td>
+      <td>通讯协议标准</td>
+      <td><strong>业务逻辑封装 (SOP)</strong></td>
+    </tr>
+    <tr>
+      <td><strong>开发语言</strong></td>
+      <td>JSON Schema + Python/Node.js</td>
+      <td>TypeScript/Python SDK</td>
+      <td><strong>Markdown / 自然语言</strong></td>
+    </tr>
+    <tr>
+      <td><strong>实现难度</strong></td>
+      <td>高（需编写复杂 Schema 和后端逻辑）</td>
+      <td>中（需搭建 Server 和配置 Client）</td>
+      <td><strong>极低（仅需编写文本文件）</strong></td>
+    </tr>
+    <tr>
+      <td><strong>灵活性</strong></td>
+      <td>僵化（参数严格匹配）</td>
+      <td>较强（标准化连接）</td>
+      <td><strong>极强（容错率高，大模型自动补全）</strong></td>
+    </tr>
+    <tr>
+      <td><strong>适用人群</strong></td>
+      <td>后端工程师</td>
+      <td>全栈工程师</td>
+      <td><strong>所有人（含非技术人员）</strong></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout reveal">
+  <div class="callout-icon">🔑</div>
+  <div class="callout-body">
+    <p><strong>Function Calling</strong> 是底层的"零件"，它是给机器看的。<strong>MCP</strong> 是连接的"管道"，它是给系统用的。<strong>Agent Skills</strong> 则是"说明书"，它是给 AI 大脑看的。</p>
+    <p>Agent Skills 之所以能大范围普及，正是因为它屏蔽了底层的零件和管道，让开发者可以直接通过"写说明书"来驱动 AI。<strong>在 Agent 时代，最好的编程语言就是你的母语。</strong></p>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 2. 完整底层执行流程 ==================== -->
+<h2 class="reveal">2. 完整的 Agent Skills 底层执行流程</h2>
+
+<h3 class="reveal">2.1 深度思考：从"说明书"到"行动"的跨越</h3>
+
+<p class="reveal">在上一节中，我们看到只需把文件夹一拖，Agent 就像《黑客帝国》里的 Neo 一样瞬间学会了"功夫"。但这看似简单的"魔法"背后，其实隐藏着一系列精密的工程设计。</p>
+
+<p class="reveal">这里请大家暂停一下，思考几个关乎系统生死的工程问题：</p>
+
+<div class="grid reveal">
+  <div class="card card-accent">
+    <h4>上下文爆炸问题</h4>
+    <p>如果我们有一万个 Skills，每个 Skill 的说明书都有 2KB，难道我们要把这 20MB 的文字全部塞进 System Prompt 吗？显然不行，Token 会瞬间溢出，费用会爆炸。那么 Agent 是怎么知道 <code>get_weather</code> 存在的？</p>
+  </div>
+  <div class="card card-accent">
+    <h4>知识与能力的鸿沟</h4>
+    <p><code>SKILL.md</code> 里写着"去访问 wttr.in 网站"，但这只是一行文字。文字本身是没有执行力的。Agent 最终必须通过代码去发起 HTTP 请求。那么，它是如何把"文档里的文字指令"转化为"实际的代码执行"的？</p>
+  </div>
+</div>
+
+<p class="reveal">要回答这些问题，我们不能只看聊天界面，必须打开 FuFan-OpenClaw 的 <strong>"后台原始消息队列" (Raw Message Logs)</strong>，看看在那个 0.5 秒的瞬间，Agent 的大脑里到底发生了什么。</p>
+
+<hr class="divider">
+
+<!-- ===== 2.2 流程解密 ===== -->
+<h3 class="reveal">2.2 流程解密：四步完成技能闭环</h3>
+
+<p class="reveal">我们以刚才的"查询北京天气"为例，通过 FuFan-OpenClaw 的调试后台，还原这一次 Skill 调用的全过程。</p>
+
+<img class="zoomable reveal" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211184843243.png" alt="完整执行流程概览" onclick="openLightbox(this.src)" />
+
+<!-- Phase 1 -->
+<div class="card reveal">
+  <div class="phase-tag">Phase 1</div>
+  <h4>意图识别与技能加载 (Skill Loading)</h4>
+  <p>当用户输入指令后，当前上下文（Context）中包含了 System Prompt（内含 Skill 简要索引）和 User Message。当我们把 <code>get_weather</code> 文件夹拖入系统时，OpenClaw 并没有立即读取 <code>SKILL.md</code> 的全文。为了节省上下文，它只读取了文件名和元数据。我们在系统日志中可以看到这样一条 System Message：</p>
+  <img class="zoomable" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211184935558.png" alt="Phase 1 — Skill 元数据索引" onclick="openLightbox(this.src)" />
+</div>
+
+<!-- Phase 2 -->
+<div class="card reveal">
+  <div class="phase-tag">Phase 2</div>
+  <h4>技能注入与上下文增强 (Context Injection)</h4>
+  <p>这是最关键的一步。OpenClaw 后端接收到 <code>read_file</code> 请求，读取磁盘上的 Markdown 文件，并将文件内容封装为标准的 <strong>Function Response Message</strong>，回填至消息队列中。</p>
+  <img class="zoomable" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211185120001.png" alt="Phase 2 — 技能内容注入上下文" onclick="openLightbox(this.src)" />
+</div>
+
+<!-- Phase 3 -->
+<div class="card reveal">
+  <div class="phase-tag">Phase 3</div>
+  <h4>基于 SOP 的工具执行 (Execution)</h4>
+  <p>此时，消息堆栈中已经包含了完整的技能说明书。模型发起第二轮推理，严格遵循刚刚注入的指示（SOP），构造具体的业务请求。模型并不是自己"编造"了 URL，而是根据 Phase 2 中注入的上下文（Markdown 中的步骤 2），进行了 <strong>In-Context Learning（上下文学习）</strong>，完成了从自然语言指令到结构化参数的映射。</p>
+  <img class="zoomable" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211185305978.png" alt="Phase 3 — 执行工具调用" onclick="openLightbox(this.src)" />
+</div>
+
+<!-- Phase 4 -->
+<div class="card reveal">
+  <div class="phase-tag">Phase 4</div>
+  <h4>最终响应 (Final Response)</h4>
+  <p>最后，<code>fetch_url</code> 的返回结果（JSON）再次以 <code>role: tool</code> 的形式进入消息队列。模型综合所有上下文，输出最终的自然语言回复。</p>
+  <img class="zoomable" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211185349848.png" alt="Phase 4 — 最终响应输出" onclick="openLightbox(this.src)" />
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 3. 系统设计入门 ==================== -->
+<h2 class="reveal">3. Agent Skills 系统设计入门</h2>
+
+<p class="reveal">通过剖析底层的 Function Calling 执行流，我们已经触摸到了 Agent Skills 的技术实质。从工程视角来看，<strong>Agent Skills 并非简单的文档堆砌，而是一种"高内聚、低耦合"的系统架构设计。</strong></p>
+
+<p class="reveal">要构建一个企业级可用的 Agent Skills 系统，我们需要从系统工程的角度，重新审视 Agent（宿主环境）与 Skill（业务逻辑）之间的交互协议。以下是系统设计的五大核心要素：</p>
+
+<!-- ===== 3.1 ===== -->
+<h3 class="reveal">3.1 架构依赖：运行时 vs 业务逻辑的解耦</h3>
+
+<p class="reveal">首先，我们需要在架构层面明确 Agent 与 Skills 的依存关系。</p>
+
+<div class="grid reveal">
+  <div class="card card-accent">
+    <h4>Skill 的本质</h4>
+    <p><strong>静态的业务逻辑定义</strong>（Static Logic Definition）。无论是 Markdown 还是 YAML，它本质上是一组"未被执行的代码"或"待处理的 SOP"。</p>
+  </div>
+  <div class="card card-accent">
+    <h4>Agent 的本质</h4>
+    <p><strong>动态的执行运行时</strong>（Dynamic Execution Runtime）。它提供了推理引擎（LLM）、记忆模块（Memory）和工具接口（Interfaces）。</p>
+  </div>
+</div>
+
+<div class="highlight reveal">
+  <p><strong>系统设计难点：</strong>Skill 离开了 Agent 只是文本文件，无法产生价值；而 Agent 离开了 Skill 只是一个通用的聊天机器人。<strong>系统设计的核心，在于构建一个能够标准化解析、加载并执行这些静态逻辑的"Agent Runtime"。</strong></p>
+</div>
+
+<!-- ===== 3.2 ===== -->
+<h3 class="reveal">3.2 核心机制：动态上下文加载 (Dynamic Context Loading)</h3>
+
+<p class="reveal">在 Skill 系统设计中，最关键的技术挑战在于 <strong>Token 效率与信息完备性的平衡</strong>。这本质上是一项精密的 <strong>上下文工程 (Context Engineering)</strong>。</p>
+
+<p class="reveal">如果我们预置了海量的 Skills，直接全部注入 System Prompt 会导致两个致命问题：</p>
+
+<div class="grid reveal">
+  <div class="card card-accent">
+    <h4>Context Window 溢出</h4>
+    <p>Token 消耗指数级增长，成本不可控。</p>
+  </div>
+  <div class="card card-accent">
+    <h4>Attention Dilution（注意力稀释）</h4>
+    <p>过长的上下文会导致模型推理能力下降（Lost in the Middle 现象）。</p>
+  </div>
+</div>
+
+<p class="reveal">因此，成熟的系统设计必须采用 <strong>"索引-按需加载" (Index-Lazy Loading)</strong> 策略：</p>
+
+<div class="steps reveal">
+  <div class="step"><strong>索引层</strong> — 在 System Message 中仅保留极简的元数据索引（Name + Description）</div>
+  <div class="step"><strong>加载机制</strong> — 利用 Function Calling (<code>read_file</code>) 作为触发器，实现 Skill 内容的 <strong>Just-in-Time (JIT) 注入</strong></div>
+  <div class="step"><strong>生命周期管理</strong> — 在任务结束后，需及时清理上下文，防止 Token 堆积</div>
+</div>
+
+<!-- ===== 3.3 ===== -->
+<h3 class="reveal">3.3 能力分层：编排层 vs 执行层</h3>
+
+<p class="reveal">在定义 Skill 时，必须严格区分"指导"与"执行"的边界。</p>
+
+<div class="grid reveal">
+  <div class="card card-accent">
+    <h4>Skill（编排层）</h4>
+    <p>负责 <strong>指导</strong>。它定义了任务的 SOP（标准作业程序）、决策树和数据处理逻辑。但请注意，Skill 文档本身不具备操作系统的权限。</p>
+  </div>
+  <div class="card card-accent">
+    <h4>Agent（执行层）</h4>
+    <p>负责 <strong>落地</strong>。Agent 必须原生集成一系列 <strong>原子工具 (Atomic Tools)</strong>，如 <code>network_client</code>（联网）、<code>code_interpreter</code>（代码执行）、<code>database_connector</code>（数据库连接）。</p>
+  </div>
+</div>
+
+<div class="callout reveal">
+  <div class="callout-icon">🔑</div>
+  <div class="callout-body">
+    <p><strong>设计原则：</strong>Skill 是对 Agent 原子能力的 <strong>高阶编排</strong>。如果 Skill 定义了"查询天气"的步骤，Agent 的执行层必须预先挂载了 <code>fetch</code> 或 <code>search</code> 工具。若底层原子能力缺失，上层的编排逻辑将无法闭环。</p>
+  </div>
+</div>
+
+<!-- ===== 3.4 ===== -->
+<h3 class="reveal">3.4 协议对齐：双向接口规范 (Interface Alignment)</h3>
+
+<p class="reveal">基于上述分层，Agent Skills 系统的设计必须遵循 <strong>"双向协议对齐"</strong>：</p>
+
+<div class="grid reveal">
+  <div class="card card-accent">
+    <h4>Agent 端规范</h4>
+    <ul>
+      <li>必须具备 <strong>工具反思能力</strong>：能够识别何时需要查阅文档（调用 <code>read_file</code>）</li>
+      <li>必须具备 <strong>标准化沙箱</strong>：为 Skill 的执行提供安全的文件读写和网络访问环境</li>
+    </ul>
+  </div>
+  <div class="card card-accent">
+    <h4>Skills 端规范</h4>
+    <ul>
+      <li><strong>能力感知</strong>：SOP 的编写必须基于 Agent 已有的工具集（Tools Schema）</li>
+      <li><strong>格式统一</strong>：必须遵循系统预设的解析标准（如 OpenClaw Standard Markdown），确保 Agent 能正确提取 Intent 和 Steps</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== 3.5 ===== -->
+<h3 class="reveal">3.5 开发者的价值：垂直领域的架构实现</h3>
+
+<p class="reveal">既然 Anthropic 等巨头提出了 Agent Skills 范式，为什么没有一个"通用 Agent"能解决所有问题？</p>
+
+<div class="highlight reveal">
+  <p><strong>因为"泛化范式"无法替代"垂直架构"。</strong></p>
+</div>
+
+<p class="reveal">Anthropic 提供的是一套协议标准（Protocol），而具体的业务系统（Implementation）依然存在巨大的差异性：</p>
+
+<ul class="reveal">
+  <li><strong>金融 Agent</strong>：需要集成高频交易接口，对 Skill 的确定性和低延迟要求极高</li>
+  <li><strong>编程 Agent</strong>：需要集成编译器和解释器，其 Skill 侧重于代码生成的逻辑校验</li>
+</ul>
+
+<div class="callout reveal">
+  <div class="callout-icon">🏗️</div>
+  <div class="callout-body">
+    <p><strong>这正是大模型工程师的核心价值：</strong>我们不是在使用一个现成的黑盒产品，而是基于 Agent Skills 这一技术范式，针对特定的业务场景（如法律、医疗、研发），<strong>设计并实现一套包含"专用原子工具"、"动态加载策略"和"领域 SOP"的完整智能体系统。</strong></p>
+  </div>
+</div>
+
+<!-- ==================== LIGHTBOX ==================== -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+  <img id="lightbox-img" src="" alt="Preview" />
+</div>
+
+<script>
+  function openLightbox(src) {
+    var lb = document.getElementById('lightbox');
+    var img = document.getElementById('lightbox-img');
+    img.src = src;
+    lb.classList.add('active');
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('active');
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeLightbox();
+  });
+  (function() {
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(function(el) {
+      observer.observe(el);
+    });
+  })();
+</script>
+</body>
+</html>

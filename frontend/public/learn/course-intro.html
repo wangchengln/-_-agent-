@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #fafafa; color: #333; line-height: 1.8;
+    padding: 2em 2.5em 4em;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1 {
+    font-size: 1.6em; font-weight: 800; margin-bottom: 0.3em;
+    background: linear-gradient(135deg, #B8860B, #D4AF37);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  h1 .sub { display: block; font-size: 0.55em; font-weight: 500; color: #888; -webkit-text-fill-color: #888; margin-top: 0.2em; }
+  h2 { font-size: 1.2em; font-weight: 700; margin: 2em 0 0.6em; color: #333; border-bottom: 2px solid #B8860B; padding-bottom: 0.3em; }
+  h3 { font-size: 1.05em; font-weight: 600; margin: 1.2em 0 0.4em; color: #444; }
+  p { margin: 0.5em 0; color: #555; }
+  strong { color: #333; }
+  a { color: #B8860B; text-decoration: underline; }
+  a:hover { color: #D4AF37; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; background: rgba(184,134,11,0.1); color: #B8860B; }
+  .badge-group { display: flex; gap: 6px; flex-wrap: wrap; margin: 0.5em 0 1.5em; }
+  .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.3em; margin: 0.8em 0; box-shadow: 0 1px 4px rgba(0,0,0,0.04); transition: transform 0.2s, box-shadow 0.2s; }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .card h3 { margin-top: 0; }
+  .card-accent { border-left: 3px solid #B8860B; }
+  .highlight { background: linear-gradient(135deg, rgba(184,134,11,0.06), rgba(212,175,55,0.06)); border: 1px solid rgba(184,134,11,0.15); border-radius: 10px; padding: 1em 1.2em; margin: 1em 0; }
+  .highlight strong { color: #B8860B; }
+  .callout { display: flex; gap: 0.8em; padding: 1em; border-radius: 10px; background: #fffbeb; border: 1px solid #fde68a; margin: 1em 0; }
+  .callout-red { background: #fff5f5; border-color: #fca5a5; }
+  .callout-icon { font-size: 1.3em; line-height: 1; }
+  .callout-body { flex: 1; }
+  .callout-body p { margin: 0; color: #92400e; }
+  .callout-red .callout-body p { color: #dc2626; }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, #B8860B, transparent); margin: 2em 0; border: none; }
+  .zoomable { cursor: zoom-in; max-width: 100%; border-radius: 8px; border: 1px solid #e5e7eb; transition: box-shadow 0.2s; display: block; margin: 0.8em auto; }
+  .zoomable:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.12); }
+  .lightbox { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; cursor: zoom-out; }
+  .lightbox.active { display: flex; }
+  .lightbox img { max-width: 92vw; max-height: 92vh; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  .lightbox-close { position: fixed; top: 16px; right: 16px; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.15); color: #fff; border: none; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .lightbox-close:hover { background: rgba(255,255,255,0.3); }
+  .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .video-player { width: 100%; max-width: 100%; border-radius: 10px; margin: 0.5em 0; border: 1px solid #e5e7eb; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .video-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1em; margin: 1em 0; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+  .video-card h3 { margin: 0 0 0.5em; font-size: 0.95em; color: #444; }
+  .qr-img { max-width: 200px; display: block; margin: 0.8em auto; border-radius: 8px; }
+  .promo-banner {
+    background: linear-gradient(135deg, #B8860B, #D4AF37);
+    color: #fff; text-align: center; padding: 1em 1.5em;
+    border-radius: 12px; margin: 1.5em 0; font-weight: 600;
+    box-shadow: 0 4px 16px rgba(184,134,11,0.3);
+  }
+  .promo-banner p { color: #fff; margin: 0.3em 0; }
+</style>
+</head>
+<body>
+
+<h1>
+  正课介绍
+  <span class="sub">《2026大模型Agent智能体开发实战》完整版付费课程</span>
+</h1>
+
+<div class="badge-group">
+  <span class="badge">100+ 小时</span>
+  <span class="badge">20 大模块</span>
+  <span class="badge">零基础直达企业级</span>
+  <span class="badge">新春特惠</span>
+</div>
+
+<div class="highlight reveal">
+  <p>体验课内容节选自 <a href="https://ix9mq.xetslk.com/s/vOZcA" target="_blank">《2026大模型Agent智能体开发实战》</a> 完整版付费课程</p>
+  <p>体验课时间有限，若想深度学习大模型技术，欢迎大家报名由我主讲的 <a href="https://ix9mq.xetslk.com/s/vOZcA" target="_blank">《2026大模型Agent智能体开发实战》</a></p>
+</div>
+
+<img class="zoomable reveal" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/2f677744fd2ad67942bc06ab9f5d7465.png" alt="课程宣传图" onclick="openLightbox(this.src)" />
+
+<div class="highlight reveal">
+  <p><strong><a href="https://ix9mq.xetslk.com/s/vOZcA" target="_blank">《2026大模型Agent智能体开发实战》</a></strong> 为【100+小时】体系大课，总共 20 大模块精讲精析，零基础直达大模型企业级应用！</p>
+</div>
+
+<hr class="divider">
+
+<!-- ===== 课程完整介绍 ===== -->
+<h2 class="reveal">课程完整介绍</h2>
+
+<img class="zoomable reveal" src="https://wechatapppro-cos.cdn.xiaoe-materials.com/appZe9inzwc2314/image/b_u_cmpj9gqgjmqnda9rffhg/lsos0omkmf1am0.png?imageView2/2/q/100%7CimageMogr2/ignore-error/1" alt="课程完整介绍长图" onclick="openLightbox(this.src)" />
+
+<hr class="divider">
+
+<!-- ===== 部分课程成果演示 ===== -->
+<h2 class="reveal">部分课程成果演示</h2>
+
+<!-- 视频 1 -->
+<div class="video-card reveal">
+  <h3>Fufan Manus 通用智能体开发实战</h3>
+  <video class="video-player" controls preload="metadata">
+    <source src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/FufanMauns.mp4" type="video/mp4">
+    您的浏览器不支持视频播放
+  </video>
+</div>
+
+<!-- 视频 2 -->
+<div class="video-card reveal">
+  <h3>Coze 自动图文视频创作流程</h3>
+  <video class="video-player" controls preload="metadata">
+    <source src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/Coze%E5%8A%A8%E6%80%81%E8%A7%86%E9%A2%91%E7%94%9F%E6%88%90%E5%AE%9E%E4%BE%8B.mp4" type="video/mp4">
+    您的浏览器不支持视频播放
+  </video>
+</div>
+
+<!-- 视频 3 -->
+<div class="video-card reveal">
+  <h3>全自动数据清洗工作流</h3>
+  <video class="video-player" controls preload="metadata">
+    <source src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/%E6%95%B0%E6%8D%AE%E9%9B%86%E6%9E%84%E5%BB%BA%E5%AE%8C%E6%95%B4%E7%89%88.mp4" type="video/mp4">
+    您的浏览器不支持视频播放
+  </video>
+</div>
+
+<!-- 视频 4 -->
+<div class="video-card reveal">
+  <h3>NL2SQL 数据分析 Agent</h3>
+  <video class="video-player" controls preload="metadata">
+    <source src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/%E6%9C%A8%E7%BE%BD-11%E6%9C%886%E6%97%A5.mp4" type="video/mp4">
+    您的浏览器不支持视频播放
+  </video>
+</div>
+
+<!-- 视频 5 -->
+<div class="video-card reveal">
+  <h3>MiniChatGPT MCP Agent 开发</h3>
+  <video class="video-player" controls preload="metadata">
+    <source src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/12%E6%9C%889%E6%97%A5.mp4" type="video/mp4">
+    您的浏览器不支持视频播放
+  </video>
+</div>
+
+<!-- 视频 6 -->
+<div class="video-card reveal">
+  <h3>垂域 GraphRAG 系统开发</h3>
+  <video class="video-player" controls preload="metadata">
+    <source src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/12%E6%9C%8824%E6%97%A5.mp4" type="video/mp4">
+    您的浏览器不支持视频播放
+  </video>
+</div>
+
+<!-- 视频 7 -->
+<div class="video-card reveal">
+  <h3>智能文档审核 Agent</h3>
+  <video class="video-player" controls preload="metadata">
+    <source src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/c5e4cdabefc15578d5e0c2110c4f8723_raw.mp4" type="video/mp4">
+    您的浏览器不支持视频播放
+  </video>
+</div>
+
+<!-- 视频 8 -->
+<div class="video-card reveal">
+  <h3>MateGen Pro 项目功能演示</h3>
+  <video class="video-player" controls preload="metadata">
+    <source src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/MG%E6%BC%94%E7%A4%BA%E8%A7%86%E9%A2%91.mp4" type="video/mp4">
+    您的浏览器不支持视频播放
+  </video>
+</div>
+
+<!-- 视频 9 -->
+<div class="video-card reveal">
+  <h3>智能客服项目展示</h3>
+  <video class="video-player" controls preload="metadata">
+    <source src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/%E6%99%BA%E8%83%BD%E5%AE%A2%E6%9C%8D%E6%A1%88%E4%BE%8B%E8%A7%86%E9%A2%91.mp4" type="video/mp4">
+    您的浏览器不支持视频播放
+  </video>
+</div>
+
+<!-- 视频 10 -->
+<div class="video-card reveal">
+  <h3>GraphRAG + 多模态文档检索</h3>
+  <video class="video-player" controls preload="metadata">
+    <source src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/7%E6%9C%8817%E6%97%A5%281%29%20%E8%BF%9B%E5%BA%A6%E6%9D%A1.mp4" type="video/mp4">
+    您的浏览器不支持视频播放
+  </video>
+</div>
+
+<hr class="divider">
+
+<!-- ===== 优惠信息 ===== -->
+<div class="promo-banner reveal">
+  <p>2026新春班上新特惠进行时</p>
+  <p>直播间享五折特价 + 全套 SVIP 新班特定福利</p>
+  <p>合购还有更多优惠~</p>
+</div>
+
+<img class="zoomable reveal" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/2.png" alt="优惠活动海报" onclick="openLightbox(this.src)" />
+
+<div class="callout callout-red reveal">
+  <div class="callout-icon">👇</div>
+  <div class="callout-body">
+    <p><strong>详细信息扫码添加助教，回复"大模型"，即可领取课程大纲 & 查看课程详情</strong></p>
+  </div>
+</div>
+
+<div style="text-align: center;" class="reveal">
+  <img class="qr-img zoomable" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/0.png" alt="助教二维码" onclick="openLightbox(this.src)" />
+</div>
+
+<img class="zoomable reveal" src="https://wechatapppro-cos.cdn.xiaoe-materials.com/appZe9inzwc2314/image/b_u_cmpj9gqgjmqnda9rffhg/wnocdrmkusohg3.png?imageView2/2/q/100%7CimageMogr2/ignore-error/1" alt="课程详情 1" onclick="openLightbox(this.src)" />
+
+<img class="zoomable reveal" src="https://wechatapppro-cos.cdn.xiaoe-materials.com/appZe9inzwc2314/image/b_u_cmpj9gqgjmqnda9rffhg/2dz0aemkuryima.png?imageView2/2/q/100%7CimageMogr2/ignore-error/1" alt="课程详情 2" onclick="openLightbox(this.src)" />
+
+<!-- ==================== LIGHTBOX ==================== -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+  <img id="lightbox-img" src="" alt="Preview" />
+</div>
+
+<script>
+  function openLightbox(src) {
+    var lb = document.getElementById('lightbox');
+    var img = document.getElementById('lightbox-img');
+    img.src = src;
+    lb.classList.add('active');
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('active');
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeLightbox();
+  });
+  (function() {
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(function(el) {
+      observer.observe(el);
+    });
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #fafafa; color: #333; line-height: 1.8;
+    padding: 2em 2.5em 4em;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1 { font-size: 1.6em; font-weight: 800; margin-bottom: 0.3em; background: linear-gradient(135deg, #B8860B, #D4AF37); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  h1 .sub { display: block; font-size: 0.55em; font-weight: 500; color: #888; -webkit-text-fill-color: #888; margin-top: 0.2em; }
+  h2 { font-size: 1.2em; font-weight: 700; margin: 2em 0 0.6em; color: #333; border-bottom: 2px solid #B8860B; padding-bottom: 0.3em; }
+  h3 { font-size: 1.05em; font-weight: 600; margin: 1.2em 0 0.4em; color: #444; }
+  h4 { font-size: 0.95em; font-weight: 600; margin: 1em 0 0.3em; color: #555; }
+  p { margin: 0.5em 0; color: #555; }
+  strong { color: #333; }
+  a { color: #B8860B; text-decoration: underline; }
+  a:hover { color: #D4AF37; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; background: rgba(184,134,11,0.1); color: #B8860B; }
+  .badge-group { display: flex; gap: 6px; flex-wrap: wrap; margin: 0.5em 0 1.5em; }
+  .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.3em; margin: 0.8em 0; box-shadow: 0 1px 4px rgba(0,0,0,0.04); transition: transform 0.2s, box-shadow 0.2s; }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .card h3, .card h4 { margin-top: 0; }
+  .card-accent { border-left: 3px solid #B8860B; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8em; }
+  @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+  code { background: rgba(184,134,11,0.08); padding: 1px 6px; border-radius: 4px; font-size: 0.88em; color: #B8860B; font-family: "Fira Code", "Cascadia Code", monospace; }
+  pre { background: #1e1e2e; color: #cdd6f4; border-radius: 10px; padding: 1em 1.2em; margin: 0.8em 0; overflow-x: auto; font-size: 0.85em; line-height: 1.6; font-family: "Fira Code", "Cascadia Code", monospace; }
+  pre code { background: none; color: inherit; padding: 0; }
+  ul, ol { padding-left: 1.5em; }
+  li { margin: 0.3em 0; }
+  .steps { counter-reset: step; }
+  .step { counter-increment: step; position: relative; padding-left: 3em; margin: 1.2em 0; }
+  .step::before { content: counter(step); position: absolute; left: 0; top: 0; width: 2em; height: 2em; background: linear-gradient(135deg, #B8860B, #D4AF37); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85em; font-weight: 700; box-shadow: 0 2px 8px rgba(184,134,11,0.3); }
+  .highlight { background: linear-gradient(135deg, rgba(184,134,11,0.06), rgba(212,175,55,0.06)); border: 1px solid rgba(184,134,11,0.15); border-radius: 10px; padding: 1em 1.2em; margin: 1em 0; }
+  .highlight strong { color: #B8860B; }
+  .callout { display: flex; gap: 0.8em; padding: 1em; border-radius: 10px; background: #fffbeb; border: 1px solid #fde68a; margin: 1em 0; }
+  .callout-icon { font-size: 1.3em; line-height: 1; }
+  .callout-body { flex: 1; }
+  .callout-body p { margin: 0; color: #92400e; }
+  .callout-danger { background: #fff5f5; border-color: #fca5a5; }
+  .callout-danger .callout-body p { color: #991b1b; }
+  .callout-success { background: #f0fdf4; border-color: #86efac; }
+  .callout-success .callout-body p { color: #166534; }
+  .compare-table { width: 100%; border-collapse: collapse; margin: 1em 0; font-size: 0.88em; }
+  .compare-table th { background: linear-gradient(135deg, #B8860B, #D4AF37); color: #fff; padding: 0.6em 0.8em; text-align: left; font-weight: 600; }
+  .compare-table td { padding: 0.5em 0.8em; border-bottom: 1px solid #e5e7eb; }
+  .compare-table tr:hover td { background: rgba(184,134,11,0.04); }
+  .icon-card { display: flex; gap: 1em; align-items: flex-start; padding: 1.2em; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; margin: 0.6em 0; transition: transform 0.2s, box-shadow 0.2s; }
+  .icon-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .icon-card .icon { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, rgba(184,134,11,0.1), rgba(212,175,55,0.1)); display: flex; align-items: center; justify-content: center; font-size: 1.2em; flex-shrink: 0; }
+  .icon-card .content { flex: 1; }
+  .icon-card .content h3, .icon-card .content h4 { margin: 0 0 0.2em; font-size: 0.95em; }
+  .icon-card .content p { margin: 0; font-size: 0.88em; }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, #B8860B, transparent); margin: 2em 0; border: none; }
+  .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .dir-tree { background: #1e1e2e; color: #cdd6f4; border-radius: 10px; padding: 1em 1.2em; margin: 0.8em 0; overflow-x: auto; font-size: 0.82em; line-height: 1.7; font-family: "Fira Code", "Cascadia Code", monospace; white-space: pre; }
+  .dir-tree .folder { color: #89b4fa; font-weight: 600; }
+  .dir-tree .file { color: #a6e3a1; }
+  .dir-tree .comment { color: #6c7086; font-style: italic; }
+  .env-table { width: 100%; border-collapse: collapse; margin: 1em 0; font-size: 0.85em; }
+  .env-table th { background: #1e1e2e; color: #cdd6f4; padding: 0.6em 0.8em; text-align: left; font-weight: 600; font-family: "Fira Code", monospace; }
+  .env-table td { padding: 0.5em 0.8em; border-bottom: 1px solid #e5e7eb; }
+  .env-table td:first-child { font-family: "Fira Code", monospace; color: #B8860B; font-weight: 600; font-size: 0.95em; }
+  .env-table tr:hover td { background: rgba(184,134,11,0.04); }
+  .api-method { display: inline-block; padding: 1px 8px; border-radius: 4px; font-size: 0.78em; font-weight: 700; font-family: "Fira Code", monospace; margin-right: 6px; }
+  .api-get { background: #dbeafe; color: #1d4ed8; }
+  .api-post { background: #dcfce7; color: #166534; }
+  .api-put { background: #fef3c7; color: #92400e; }
+  .api-delete { background: #fee2e2; color: #991b1b; }
+</style>
+</head>
+<body>
+
+<h1>
+  Ch 3. FuFan OpenClaw 项目开发指南
+  <span class="sub">二、安装部署与使用指南</span>
+</h1>
+
+<div class="badge-group">
+  <span class="badge">安装部署</span>
+  <span class="badge">环境配置</span>
+  <span class="badge">功能使用</span>
+  <span class="badge">API 参考</span>
+  <span class="badge">项目结构</span>
+</div>
+
+<div class="highlight reveal">
+  <p><strong>本节目标：</strong>手把手引导你完成 FuFan OpenClaw 的环境搭建、依赖安装、配置文件设置，全面介绍每个功能模块的使用方法，并提供完整的 API 接口参考和项目目录结构说明。</p>
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 1. 环境要求 ==================== -->
+<h2 class="reveal">1. 环境要求</h2>
+
+<p class="reveal">在开始之前，请确保你的开发环境满足以下条件：</p>
+
+<table class="compare-table reveal">
+  <thead>
+    <tr><th>依赖项</th><th>最低版本</th><th>推荐版本</th><th>说明</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Python</strong></td><td>3.10+</td><td>3.11 / 3.12</td><td>需要 <code>|</code> 类型联合语法和 async 增强</td></tr>
+    <tr><td><strong>Node.js</strong></td><td>18.0+</td><td>20 LTS / 22 LTS</td><td>Next.js 14 需要 Node 18 以上</td></tr>
+    <tr><td><strong>npm</strong></td><td>9.0+</td><td>随 Node.js 安装</td><td>或使用 yarn / pnpm 替代</td></tr>
+    <tr><td><strong>Git</strong></td><td>2.30+</td><td>最新版</td><td>用于克隆项目仓库</td></tr>
+    <tr><td><strong>操作系统</strong></td><td colspan="2">Windows / macOS / Linux</td><td>已在三平台测试通过</td></tr>
+  </tbody>
+</table>
+
+<div class="callout reveal">
+  <div class="callout-icon">💡</div>
+  <div class="callout-body">
+    <p><strong>API Key 准备：</strong>你至少需要一个 DeepSeek API Key（<a href="https://platform.deepseek.com" target="_blank">platform.deepseek.com</a> 注册即可获取）。如需网络搜索功能，还需 Tavily API Key（<a href="https://tavily.com" target="_blank">tavily.com</a>）。浏览器自动化功能需要额外安装 Playwright Chromium。</p>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 2. 安装步骤 ==================== -->
+<h2 class="reveal">2. 安装步骤</h2>
+
+<!-- 2.1 克隆项目 -->
+<h3 class="reveal">2.1 克隆项目</h3>
+
+<pre class="reveal"><code>git clone https://github.com/your-org/mini-OpenClaw.git
+cd mini-OpenClaw</code></pre>
+
+<p class="reveal">项目根目录结构如下：</p>
+
+<pre class="reveal"><code>mini-OpenClaw/
+├── backend/          # Python 后端（FastAPI + LangChain Agent）
+├── frontend/         # Next.js 14 前端
+├── CLAUDE.md         # 项目指南文件
+└── README.md         # 项目说明</code></pre>
+
+<!-- 2.2 后端安装 -->
+<h3 class="reveal">2.2 后端安装</h3>
+
+<div class="card card-accent reveal">
+  <h4>Step 1：创建 Python 虚拟环境（推荐）</h4>
+<pre><code># 创建虚拟环境
+python -m venv venv
+
+# 激活虚拟环境
+# Windows:
+venv\Scripts\activate
+# macOS / Linux:
+source venv/bin/activate</code></pre>
+</div>
+
+<div class="card card-accent reveal">
+  <h4>Step 2：安装 Python 依赖</h4>
+<pre><code>cd backend
+pip install -r requirements.txt</code></pre>
+  <p>主要依赖包含：</p>
+  <ul>
+    <li><code>fastapi</code> + <code>uvicorn</code> — Web 框架与 ASGI 服务器</li>
+    <li><code>langchain</code> + <code>langgraph</code> + <code>langchain-deepseek</code> — Agent 引擎</li>
+    <li><code>llama-index-core</code> — RAG 检索引擎</li>
+    <li><code>sse-starlette</code> — SSE 流式响应</li>
+    <li><code>browser-use</code> + <code>playwright</code> — 浏览器自动化</li>
+    <li><code>tavily-python</code> — 网络搜索</li>
+    <li><code>tiktoken</code> — Token 计数</li>
+    <li><code>beautifulsoup4</code> + <code>html2text</code> — 网页内容清洗</li>
+  </ul>
+</div>
+
+<div class="card card-accent reveal">
+  <h4>Step 3：配置环境变量</h4>
+  <p>复制 <code>.env.example</code> 为 <code>.env</code>，然后填入你的 API Key：</p>
+<pre><code>cp .env.example .env</code></pre>
+  <p>编辑 <code>.env</code> 文件：</p>
+<pre><code># === 必填 ===
+DEEPSEEK_API_KEY=sk-your-deepseek-api-key
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+DEEPSEEK_MODEL=deepseek-chat
+
+# === 可选：OpenAI 兼容接口 ===
+OPENAI_API_KEY=sk-xxx
+OPENAI_BASE_URL=https://api.openai.com/v1
+MODEL_NAME=gpt-4o-mini
+
+# === 可选：Embedding 模型（RAG 模式需要）===
+EMBEDDING_MODEL=text-embedding-3-small
+
+# === 可选：Tavily 网络搜索 ===
+TAVILY_API_KEY=tvly-your-tavily-api-key
+
+# === 服务器配置 ===
+HOST=0.0.0.0
+PORT=8002</code></pre>
+</div>
+
+<div class="card card-accent reveal">
+  <h4>Step 4：安装浏览器自动化（可选）</h4>
+  <p>如果需要使用 <code>browser_use</code> 工具，需要额外安装 Playwright Chromium：</p>
+<pre><code>playwright install chromium</code></pre>
+</div>
+
+<div class="card card-accent reveal">
+  <h4>Step 5：启动后端服务</h4>
+<pre><code>uvicorn app:app --port 8002 --reload</code></pre>
+  <p>启动成功后，你将看到：</p>
+<pre><code>🤖 Agent initialized with 7 tools (DeepSeek: deepseek-chat)
+✅ fufan OpenClaw backend ready
+INFO:     Uvicorn running on http://0.0.0.0:8002</code></pre>
+  <p>访问 <code>http://localhost:8002</code> 可以看到健康检查返回：</p>
+<pre><code>{"name": "fufan OpenClaw", "version": "0.1.0", "status": "running"}</code></pre>
+</div>
+
+<!-- 2.3 前端安装 -->
+<h3 class="reveal">2.3 前端安装</h3>
+
+<div class="card card-accent reveal">
+  <h4>Step 1：安装前端依赖</h4>
+<pre><code>cd frontend
+npm install</code></pre>
+  <p>核心依赖：</p>
+  <ul>
+    <li><code>next@^14.2.0</code> — React 全栈框架（App Router）</li>
+    <li><code>react@^18.3.0</code> — UI 框架</li>
+    <li><code>@monaco-editor/react@^4.6.0</code> — 代码编辑器（VS Code 内核）</li>
+    <li><code>react-markdown@^9.0.0</code> + <code>remark-gfm</code> — Markdown 渲染</li>
+    <li><code>lucide-react</code> — 图标库</li>
+    <li><code>tailwindcss@^3.4.0</code> — 原子化 CSS</li>
+  </ul>
+</div>
+
+<div class="card card-accent reveal">
+  <h4>Step 2：启动开发服务器</h4>
+<pre><code>npm run dev</code></pre>
+  <p>默认在 <code>http://localhost:3000</code> 启动。打开浏览器即可开始使用！</p>
+</div>
+
+<div class="callout callout-success reveal">
+  <div class="callout-icon">✅</div>
+  <div class="callout-body">
+    <p><strong>启动清单：</strong>确保<strong>后端</strong>（端口 8002）和<strong>前端</strong>（端口 3000）同时运行。前端通过 <code>http://localhost:8002/api</code> 与后端通信。</p>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 3. 配置详解 ==================== -->
+<h2 class="reveal">3. 配置文件详解</h2>
+
+<!-- 3.1 .env -->
+<h3 class="reveal">3.1 环境变量 (.env)</h3>
+
+<p class="reveal">后端所有敏感配置（API Key、模型参数等）均通过 <code>.env</code> 文件管理，启动时由 <code>python-dotenv</code> 自动加载。</p>
+
+<table class="env-table reveal">
+  <thead>
+    <tr><th>变量名</th><td><strong>必填</strong></td><td><strong>说明</strong></td><td><strong>默认值</strong></td></tr>
+  </thead>
+  <tbody>
+    <tr><td>DEEPSEEK_API_KEY</td><td>是</td><td>DeepSeek API 密钥</td><td>—</td></tr>
+    <tr><td>DEEPSEEK_BASE_URL</td><td>否</td><td>DeepSeek API 端点</td><td>https://api.deepseek.com</td></tr>
+    <tr><td>DEEPSEEK_MODEL</td><td>否</td><td>使用的模型名称</td><td>deepseek-chat</td></tr>
+    <tr><td>OPENAI_API_KEY</td><td>否</td><td>OpenAI 兼容接口 Key（RAG Embedding 用）</td><td>—</td></tr>
+    <tr><td>OPENAI_BASE_URL</td><td>否</td><td>OpenAI 兼容端点</td><td>https://api.openai.com/v1</td></tr>
+    <tr><td>EMBEDDING_MODEL</td><td>否</td><td>Embedding 模型（RAG 模式需要）</td><td>text-embedding-3-small</td></tr>
+    <tr><td>TAVILY_API_KEY</td><td>否</td><td>Tavily 网络搜索 Key</td><td>—</td></tr>
+    <tr><td>HOST</td><td>否</td><td>服务器监听地址</td><td>0.0.0.0</td></tr>
+    <tr><td>PORT</td><td>否</td><td>服务器端口号</td><td>8002</td></tr>
+  </tbody>
+</table>
+
+<div class="callout reveal">
+  <div class="callout-icon">💡</div>
+  <div class="callout-body">
+    <p><strong>模型兼容性：</strong>由于使用了 <code>langchain-deepseek</code> 接口（兼容 OpenAI API 格式），你可以将 <code>DEEPSEEK_BASE_URL</code> 指向任何 OpenAI API 兼容的服务商（如 OpenRouter、本地 Ollama、阿里云百炼等），只需修改 URL 和 Key 即可。</p>
+  </div>
+</div>
+
+<!-- 3.2 Workspace -->
+<h3 class="reveal">3.2 Agent 人格文件 (workspace/)</h3>
+
+<p class="reveal"><code>workspace/</code> 目录下的 4 个 Markdown 文件定义了 Agent 的"人格"和"操作规范"。你可以随时修改这些文件，下一次对话就会生效。</p>
+
+<div class="grid reveal">
+  <div class="card card-accent">
+    <h4>SOUL.md — 人格灵魂</h4>
+    <p>定义 Agent 的核心原则：透明优先、文件即记忆、技能即学习、安全边界。以及沟通风格：简洁、准确、有条理。</p>
+    <p><strong>修改建议：</strong>调整 Agent 的沟通语气、增加专业领域的知识边界说明。</p>
+  </div>
+  <div class="card card-accent">
+    <h4>IDENTITY.md — 身份信息</h4>
+    <p>名称、版本号、定位、语言偏好。你可以修改 Agent 的名字、风格标签和默认语言。</p>
+    <p><strong>修改建议：</strong>自定义 Agent 名称，匹配你的团队品牌。</p>
+  </div>
+  <div class="card card-accent">
+    <h4>USER.md — 用户画像</h4>
+    <p>用户的职业、技术栈、偏好。Agent 会根据此文件调整回复风格和深度。对话中 Agent 也会自动更新此文件。</p>
+    <p><strong>修改建议：</strong>填入你的职业信息、常用技术栈、语言偏好。</p>
+  </div>
+  <div class="card card-accent">
+    <h4>AGENTS.md — 操作协议</h4>
+    <p>Agent 的完整操作手册：技能调用协议（先读取后执行）、记忆协议、7 大工具使用规范、Canvas 输出规范、技能创建规范。</p>
+    <p><strong>修改建议：</strong>添加自定义的 Agent 操作规则、工具使用约束。</p>
+  </div>
+</div>
+
+<!-- 3.3 config.json -->
+<h3 class="reveal">3.3 运行时配置 (config.json)</h3>
+
+<p class="reveal"><code>config.json</code> 存储运行时可切换的配置项，目前支持：</p>
+
+<pre class="reveal"><code>{
+  "rag_mode": false
+}</code></pre>
+
+<table class="compare-table reveal">
+  <thead>
+    <tr><th>配置项</th><th>类型</th><th>说明</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>rag_mode</code></td><td>boolean</td><td><code>false</code> = 直接拼接 MEMORY.md；<code>true</code> = 使用 LlamaIndex BM25+向量混合检索</td></tr>
+  </tbody>
+</table>
+
+<p class="reveal">RAG 模式开启后，MEMORY.md 不再直接拼入 System Prompt，而是根据用户问题进行检索，只将最相关的记忆片段注入上下文。适合记忆文件内容很多、直接拼接会超出 Token 限制的场景。</p>
+
+<div class="callout reveal">
+  <div class="callout-icon">⚠️</div>
+  <div class="callout-body">
+    <p><strong>注意：</strong>RAG 模式需要 <code>OPENAI_API_KEY</code>（用于 Embedding），请确保 <code>.env</code> 中已正确配置。可在前端设置中一键切换 RAG 模式开关。</p>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 4. 功能使用指南 ==================== -->
+<h2 class="reveal">4. 功能使用指南</h2>
+
+<!-- 4.1 对话系统 -->
+<h3 class="reveal">4.1 智能对话</h3>
+
+<div class="card reveal">
+  <h4>基本对话</h4>
+  <p>在主页的聊天输入框中输入消息，按 <strong>Enter</strong> 发送（<strong>Shift + Enter</strong> 换行）。Agent 的回复以流式方式逐字显示。</p>
+</div>
+
+<div class="grid reveal">
+  <div class="icon-card">
+    <div class="icon">💬</div>
+    <div class="content">
+      <h4>多会话管理</h4>
+      <p>左侧边栏自动显示所有会话。首次对话后，AI 自动生成会话标题。支持重命名（双击）和删除。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">🔗</div>
+    <div class="content">
+      <h4>ThoughtChain 工具可视化</h4>
+      <p>当 Agent 调用工具时，界面显示可展开/收起的思考链，展示工具名称、输入参数和返回结果。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">📋</div>
+    <div class="content">
+      <h4>原始消息面板</h4>
+      <p>点击聊天头部的"查看原始消息"按钮，右侧弹出调试面板，显示完整的 System / User / Assistant / Tool 消息队列。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">📊</div>
+    <div class="content">
+      <h4>Token 计数与压缩</h4>
+      <p>实时显示当前会话和系统文件的 Token 用量。当上下文过长时，可使用"压缩"功能将历史消息归档并生成摘要。</p>
+    </div>
+  </div>
+</div>
+
+<!-- 4.2 Canvas -->
+<h3 class="reveal">4.2 Canvas / A2UI 可视化</h3>
+
+<div class="card card-accent reveal">
+  <p>输入类似以下指令，Agent 会自动生成 HTML 并在右侧 Canvas 面板中渲染：</p>
+  <ul>
+    <li>"帮我创建一个温度转换器"</li>
+    <li>"写一个 HTML 贪吃蛇游戏"</li>
+    <li>"做一个数据可视化仪表盘"</li>
+    <li>"设计一个 Todo List 应用"</li>
+  </ul>
+  <p>Agent 输出的 HTML 被 <code>&lt;openclaw-canvas&gt;</code> 标签包裹，后端检测到后发送 <code>canvas</code> SSE 事件，前端在沙箱化 iframe 中安全渲染。Canvas 面板支持新窗口打开和源代码查看。</p>
+</div>
+
+<!-- 4.3 记忆管理 -->
+<h3 class="reveal">4.3 记忆管理 (/memory)</h3>
+
+<p class="reveal">导航到 <code>/memory</code> 页面，可以管理 Agent 的所有记忆文件：</p>
+
+<div class="grid reveal">
+  <div class="card">
+    <h4>文件列表</h4>
+    <p>以卡片形式展示 <code>workspace/</code> 和 <code>memory/</code> 下的所有 Markdown 文件。点击任一卡片在右侧打开编辑器。</p>
+  </div>
+  <div class="card">
+    <h4>Monaco 编辑器</h4>
+    <p>使用 VS Code 同款编辑器内核，支持 Markdown 语法高亮、自动缩进、搜索替换。编辑后点击"保存"即时生效。</p>
+  </div>
+  <div class="card">
+    <h4>AI 优化</h4>
+    <p>点击"AI 优化"按钮，让 AI 帮你整理和精简记忆内容。AI 会分析当前记忆文件，删除冗余信息，重新组织结构。</p>
+  </div>
+  <div class="card">
+    <h4>实时生效</h4>
+    <p>修改任何记忆文件后，下一次对话时 Agent 就会使用更新后的内容。无需重启后端服务。</p>
+  </div>
+</div>
+
+<!-- 4.4 技能管理 -->
+<h3 class="reveal">4.4 技能管理 (/skills)</h3>
+
+<p class="reveal">导航到 <code>/skills</code> 页面，可以管理 Agent 的所有技能：</p>
+
+<div class="reveal">
+  <div class="icon-card">
+    <div class="icon">📚</div>
+    <div class="content">
+      <h4>技能库浏览</h4>
+      <p>以卡片列表展示所有已安装的技能。每张卡片显示技能名称、描述、启用状态。支持关键词搜索快速过滤。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">✏️</div>
+    <div class="content">
+      <h4>在线编辑</h4>
+      <p>点击技能卡片，在右侧 Monaco 编辑器中打开 SKILL.md 文件。实时编辑技能的指令内容、触发条件、执行步骤。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">🤖</div>
+    <div class="content">
+      <h4>AI 创建技能</h4>
+      <p>点击"新建技能" → 选择"AI 创建"，描述你想要的技能功能，AI 自动生成规范的 SKILL.md 文件（含 YAML frontmatter + Markdown 正文）。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">📦</div>
+    <div class="content">
+      <h4>文件夹上传</h4>
+      <p>点击"新建技能" → 选择"文件夹上传"，拖入包含 SKILL.md 的技能文件夹即可导入。支持附带 scripts/、references/、assets/ 子目录。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">🏪</div>
+    <div class="content">
+      <h4>技能商店</h4>
+      <p>浏览 GitHub 上的社区技能仓库，一键安装到本地 <code>skills/</code> 目录。社区持续贡献新技能，直接复用。</p>
+    </div>
+  </div>
+</div>
+
+<!-- 4.5 设置 -->
+<h3 class="reveal">4.5 设置面板</h3>
+
+<div class="card card-accent reveal">
+  <p>点击聊天头部的<strong>齿轮图标</strong>打开设置弹窗，支持在线管理 API Key：</p>
+  <ul>
+    <li><strong>DeepSeek API Key</strong> — 主模型接口密钥</li>
+    <li><strong>OpenAI API Key</strong> — Embedding / 兼容接口密钥</li>
+    <li><strong>OpenAI Base URL</strong> — 自定义 API 端点</li>
+    <li><strong>Tavily API Key</strong> — 网络搜索密钥</li>
+  </ul>
+  <p>已有 Key 以掩码形式显示（如 <code>sk-****5435</code>），修改后安全写入本地 <code>.env</code> 文件。所有密钥仅存储在本地，不会上传到任何远程服务器。</p>
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 5. API 接口参考 ==================== -->
+<h2 class="reveal">5. API 接口完整参考</h2>
+
+<p class="reveal">后端所有 API 均挂载在 <code>/api</code> 前缀下。以下是完整的接口列表：</p>
+
+<!-- 5.1 Chat -->
+<h3 class="reveal">5.1 对话接口</h3>
+
+<table class="compare-table reveal">
+  <thead>
+    <tr><th>接口</th><th>说明</th><th>请求体 / 参数</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="api-method api-post">POST</span><code>/api/chat</code></td>
+      <td>SSE 流式对话。发送用户消息，返回 Agent 的流式响应。</td>
+      <td><code>{"message": "你好", "session_id": "abc123", "stream": true}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p class="reveal"><strong>SSE 事件类型：</strong></p>
+
+<div class="card reveal" style="font-size: 0.9em;">
+  <ul>
+    <li><code>token</code> — <code>{"content": "..."}</code> 逐 Token 输出</li>
+    <li><code>tool_start</code> — <code>{"tool": "terminal", "input": "ls"}</code> 工具开始执行</li>
+    <li><code>tool_end</code> — <code>{"tool": "terminal", "output": "..."}</code> 工具执行完毕</li>
+    <li><code>new_response</code> — <code>{}</code> 工具调用后新一轮回复开始</li>
+    <li><code>retrieval</code> — <code>{"query": "...", "results": [...]}</code> RAG 检索结果</li>
+    <li><code>canvas</code> — <code>{"html": "..."}</code> Canvas HTML 内容</li>
+    <li><code>title</code> — <code>{"session_id": "...", "title": "..."}</code> AI 生成的会话标题</li>
+    <li><code>done</code> — <code>{"content": "...", "session_id": "..."}</code> 回复完成</li>
+    <li><code>error</code> — <code>{"error": "..."}</code> 执行出错</li>
+  </ul>
+</div>
+
+<!-- 5.2 Sessions -->
+<h3 class="reveal">5.2 会话管理接口</h3>
+
+<table class="compare-table reveal">
+  <thead>
+    <tr><th>接口</th><th>说明</th><th>备注</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="api-method api-get">GET</span><code>/api/sessions</code></td>
+      <td>列出所有会话</td>
+      <td>返回 <code>[{id, title, updated_at}, ...]</code></td>
+    </tr>
+    <tr>
+      <td><span class="api-method api-post">POST</span><code>/api/sessions</code></td>
+      <td>创建新会话</td>
+      <td>返回 <code>{id, title, created_at, updated_at}</code></td>
+    </tr>
+    <tr>
+      <td><span class="api-method api-put">PUT</span><code>/api/sessions/{id}</code></td>
+      <td>重命名会话</td>
+      <td>请求体 <code>{"title": "新标题"}</code></td>
+    </tr>
+    <tr>
+      <td><span class="api-method api-delete">DELETE</span><code>/api/sessions/{id}</code></td>
+      <td>删除会话</td>
+      <td>删除对应 JSON 文件</td>
+    </tr>
+    <tr>
+      <td><span class="api-method api-get">GET</span><code>/api/sessions/{id}/history</code></td>
+      <td>获取会话消息历史</td>
+      <td>返回 messages 数组</td>
+    </tr>
+    <tr>
+      <td><span class="api-method api-get">GET</span><code>/api/sessions/{id}/raw</code></td>
+      <td>获取原始消息数据</td>
+      <td>含 title, messages (包括 tool_calls)</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- 5.3 Files -->
+<h3 class="reveal">5.3 文件操作接口</h3>
+
+<table class="compare-table reveal">
+  <thead>
+    <tr><th>接口</th><th>说明</th><th>备注</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="api-method api-get">GET</span><code>/api/files?path=...</code></td>
+      <td>读取文件内容</td>
+      <td>返回 <code>{"content": "...", "path": "..."}</code></td>
+    </tr>
+    <tr>
+      <td><span class="api-method api-post">POST</span><code>/api/files</code></td>
+      <td>保存文件内容</td>
+      <td>请求体 <code>{"path": "...", "content": "..."}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- 5.4 Token & Compress -->
+<h3 class="reveal">5.4 Token 与压缩接口</h3>
+
+<table class="compare-table reveal">
+  <thead>
+    <tr><th>接口</th><th>说明</th><th>备注</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="api-method api-get">GET</span><code>/api/tokens/session/{id}</code></td>
+      <td>获取会话 Token 数</td>
+      <td>使用 tiktoken 计算</td>
+    </tr>
+    <tr>
+      <td><span class="api-method api-get">GET</span><code>/api/tokens/files</code></td>
+      <td>获取系统文件 Token 数</td>
+      <td>统计 System Prompt 各组件的 Token 占用</td>
+    </tr>
+    <tr>
+      <td><span class="api-method api-post">POST</span><code>/api/sessions/{id}/compress</code></td>
+      <td>压缩会话历史</td>
+      <td>将早期消息归档，生成摘要注入上下文</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- 5.5 Config & Skills -->
+<h3 class="reveal">5.5 配置与技能接口</h3>
+
+<table class="compare-table reveal">
+  <thead>
+    <tr><th>接口</th><th>说明</th><th>备注</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="api-method api-get">GET</span><code>/api/config</code></td>
+      <td>获取 RAG 模式状态</td>
+      <td>返回 <code>{"rag_mode": false}</code></td>
+    </tr>
+    <tr>
+      <td><span class="api-method api-post">POST</span><code>/api/config</code></td>
+      <td>切换 RAG 模式</td>
+      <td>请求体 <code>{"rag_mode": true}</code></td>
+    </tr>
+    <tr>
+      <td><span class="api-method api-get">GET</span><code>/api/config/api-keys</code></td>
+      <td>获取 API Key（掩码）</td>
+      <td>返回掩码后的 Key，如 <code>"sk-****5435"</code></td>
+    </tr>
+    <tr>
+      <td><span class="api-method api-put">PUT</span><code>/api/config/api-keys</code></td>
+      <td>更新 API Key</td>
+      <td>写入 <code>.env</code> 文件</td>
+    </tr>
+    <tr>
+      <td><span class="api-method api-delete">DELETE</span><code>/api/skills/{name}</code></td>
+      <td>删除技能</td>
+      <td>删除文件夹 + 重新生成 SKILLS_SNAPSHOT</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr class="divider">
+
+<!-- ==================== 6. 项目目录结构 ==================== -->
+<h2 class="reveal">6. 完整项目目录结构</h2>
+
+<p class="reveal">以下是 FuFan OpenClaw 的完整目录结构，附详细注释说明每个文件/目录的用途：</p>
+
+<h3 class="reveal">6.1 后端 (backend/)</h3>
+
+<div class="dir-tree reveal"><span class="folder">backend/</span>
+├── <span class="file">app.py</span>                  <span class="comment"># FastAPI 入口，注册路由，启动 Agent</span>
+├── <span class="file">config.py</span>               <span class="comment"># 运行时配置管理 (config.json 读写)</span>
+├── <span class="file">config.json</span>             <span class="comment"># 运行时配置 (rag_mode 等)</span>
+├── <span class="file">.env</span>                    <span class="comment"># 环境变量 (API Key, 模型配置)</span>
+├── <span class="file">.env.example</span>            <span class="comment"># 环境变量模板</span>
+├── <span class="file">requirements.txt</span>        <span class="comment"># Python 依赖清单</span>
+├── <span class="file">SKILLS_SNAPSHOT.md</span>      <span class="comment"># 自动生成的技能索引</span>
+│
+├── <span class="folder">api/</span>                    <span class="comment"># API 路由处理器</span>
+│   ├── <span class="file">chat.py</span>             <span class="comment"># POST /api/chat — SSE 流式对话</span>
+│   ├── <span class="file">sessions.py</span>         <span class="comment"># 会话 CRUD (/api/sessions)</span>
+│   ├── <span class="file">files.py</span>            <span class="comment"># 文件读写 (/api/files)</span>
+│   ├── <span class="file">tokens.py</span>           <span class="comment"># Token 计数 (/api/tokens)</span>
+│   ├── <span class="file">compress.py</span>         <span class="comment"># 会话压缩 (/api/sessions/{id}/compress)</span>
+│   └── <span class="file">config_api.py</span>       <span class="comment"># RAG 配置 + API Key 管理</span>
+│
+├── <span class="folder">graph/</span>                  <span class="comment"># Agent 核心引擎</span>
+│   ├── <span class="file">agent.py</span>            <span class="comment"># AgentManager — create_agent 状态机</span>
+│   ├── <span class="file">prompt_builder.py</span>   <span class="comment"># System Prompt 6 层拼接</span>
+│   ├── <span class="file">session_manager.py</span>  <span class="comment"># JSON 文件会话持久化</span>
+│   └── <span class="file">memory_indexer.py</span>   <span class="comment"># LlamaIndex RAG 索引 (BM25 + 向量)</span>
+│
+├── <span class="folder">tools/</span>                  <span class="comment"># 7 个核心工具 (LangChain BaseTool)</span>
+│   ├── <span class="file">__init__.py</span>         <span class="comment"># get_all_tools() 工厂函数</span>
+│   ├── <span class="file">terminal_tool.py</span>    <span class="comment"># Shell 命令执行 (沙箱 + 黑名单)</span>
+│   ├── <span class="file">python_repl_tool.py</span> <span class="comment"># Python 代码执行 (UTF-8 编码)</span>
+│   ├── <span class="file">fetch_url_tool.py</span>   <span class="comment"># URL → Markdown (BeautifulSoup)</span>
+│   ├── <span class="file">read_file_tool.py</span>   <span class="comment"># 文件读取 (沙箱 + 编码安全)</span>
+│   ├── <span class="file">search_knowledge_tool.py</span> <span class="comment"># RAG 知识库检索</span>
+│   ├── <span class="file">browser_use_tool.py</span> <span class="comment"># Playwright 浏览器自动化</span>
+│   └── <span class="file">tavily_search_tool.py</span> <span class="comment"># Tavily 网络实时搜索</span>
+│
+├── <span class="folder">utils/</span>
+│   └── <span class="file">encoding.py</span>         <span class="comment"># safe_read_text() — UTF-8/GBK 编码安全</span>
+│
+├── <span class="folder">workspace/</span>              <span class="comment"># Agent 人格 / System Prompt 组件</span>
+│   ├── <span class="file">SOUL.md</span>             <span class="comment"># 人格灵魂：原则、边界、风格</span>
+│   ├── <span class="file">IDENTITY.md</span>         <span class="comment"># 身份信息：名称、版本、语言</span>
+│   ├── <span class="file">USER.md</span>             <span class="comment"># 用户画像：职业、偏好</span>
+│   └── <span class="file">AGENTS.md</span>           <span class="comment"># 操作协议：技能/记忆/工具规范</span>
+│
+├── <span class="folder">skills/</span>                 <span class="comment"># Agent 技能 (每个子目录含 SKILL.md)</span>
+│   └── <span class="folder">{skill-name}/</span>
+│       ├── <span class="file">SKILL.md</span>        <span class="comment"># 技能定义 (YAML frontmatter + 指令)</span>
+│       ├── <span class="folder">scripts/</span>        <span class="comment"># 可选：可执行脚本</span>
+│       ├── <span class="folder">references/</span>     <span class="comment"># 可选：参考文档</span>
+│       └── <span class="folder">assets/</span>         <span class="comment"># 可选：模板、数据文件</span>
+│
+├── <span class="folder">memory/</span>                 <span class="comment"># 记忆存储</span>
+│   ├── <span class="file">MEMORY.md</span>           <span class="comment"># 跨会话长期记忆</span>
+│   └── <span class="folder">logs/</span>               <span class="comment"># 每日对话摘要日志</span>
+│
+└── <span class="folder">sessions/</span>               <span class="comment"># 会话历史 (JSON 文件)</span>
+    ├── <span class="file">{session-id}.json</span>   <span class="comment"># 单个会话数据</span>
+    └── <span class="folder">archive/</span>            <span class="comment"># 压缩归档的历史消息</span></div>
+
+<h3 class="reveal">6.2 前端 (frontend/)</h3>
+
+<div class="dir-tree reveal"><span class="folder">frontend/</span>
+├── <span class="file">package.json</span>            <span class="comment"># 依赖配置 (Next.js 14 + React 18)</span>
+├── <span class="file">tailwind.config.ts</span>     <span class="comment"># Tailwind CSS 配置</span>
+├── <span class="file">tsconfig.json</span>           <span class="comment"># TypeScript 配置</span>
+├── <span class="file">next.config.mjs</span>         <span class="comment"># Next.js 配置</span>
+│
+├── <span class="folder">public/</span>
+│   └── <span class="folder">learn/</span>              <span class="comment"># 学习模式 HTML 课件</span>
+│       ├── <span class="file">ch1-1.html</span>      <span class="comment"># Ch 1.1 Agent Skills 新一代范式</span>
+│       ├── <span class="file">ch1-2.html</span>      <span class="comment"># Ch 1.2 基础实现方法详解</span>
+│       ├── <span class="file">ch2.html</span>        <span class="comment"># Ch 2 从零开发 Agent Skills</span>
+│       ├── <span class="file">ch3-1.html</span>      <span class="comment"># Ch 3.1 项目概述与架构设计</span>
+│       ├── <span class="file">ch3-2.html</span>      <span class="comment"># Ch 3.2 安装部署与使用指南</span>
+│       └── <span class="file">course-intro.html</span> <span class="comment"># 正课介绍与成果展示</span>
+│
+└── <span class="folder">src/</span>
+    ├── <span class="folder">app/</span>                <span class="comment"># Next.js App Router 页面</span>
+    │   ├── <span class="file">layout.tsx</span>      <span class="comment"># 根布局 (ThemeProvider + AppProvider)</span>
+    │   ├── <span class="file">page.tsx</span>        <span class="comment"># / — 对话页面</span>
+    │   ├── <span class="file">globals.css</span>     <span class="comment"># CSS 变量 + 主题 + 动画</span>
+    │   ├── <span class="folder">memory/</span>
+    │   │   └── <span class="file">page.tsx</span>    <span class="comment"># /memory — 记忆管理</span>
+    │   └── <span class="folder">skills/</span>
+    │       └── <span class="file">page.tsx</span>    <span class="comment"># /skills — 技能管理</span>
+    │
+    ├── <span class="folder">components/</span>
+    │   ├── <span class="folder">layout/</span>         <span class="comment"># 全局布局组件</span>
+    │   │   ├── <span class="file">Header.tsx</span>  <span class="comment"># 顶部栏：Logo + 学习模式 + 主题切换</span>
+    │   │   ├── <span class="file">Sidebar.tsx</span> <span class="comment"># 侧边栏：导航 + 会话列表/文件列表</span>
+    │   │   └── <span class="file">LearnPanel.tsx</span> <span class="comment"># 学习模式面板 (章节切换 + iframe)</span>
+    │   │
+    │   ├── <span class="folder">chat/</span>           <span class="comment"># 对话相关组件</span>
+    │   │   ├── <span class="file">ChatPanel.tsx</span>       <span class="comment"># 主聊天界面</span>
+    │   │   ├── <span class="file">ChatMessage.tsx</span>     <span class="comment"># 消息气泡 (含 CodeBlock)</span>
+    │   │   ├── <span class="file">ChatInput.tsx</span>       <span class="comment"># 输入框 (Shift+Enter 换行)</span>
+    │   │   ├── <span class="file">ThoughtChain.tsx</span>    <span class="comment"># 工具调用可视化</span>
+    │   │   ├── <span class="file">RawMessagesPanel.tsx</span> <span class="comment"># 原始消息调试面板</span>
+    │   │   ├── <span class="file">CanvasPanel.tsx</span>     <span class="comment"># Canvas HTML 预览</span>
+    │   │   └── <span class="file">RetrievalCard.tsx</span>   <span class="comment"># RAG 检索结果卡片</span>
+    │   │
+    │   ├── <span class="folder">memory/</span>         <span class="comment"># 记忆管理组件</span>
+    │   │   ├── <span class="file">MemoryFileList.tsx</span>  <span class="comment"># 文件卡片列表</span>
+    │   │   ├── <span class="file">MemoryEditor.tsx</span>    <span class="comment"># Monaco 编辑器 + AI 优化</span>
+    │   │   └── <span class="file">OptimizeModal.tsx</span>   <span class="comment"># AI 优化弹窗</span>
+    │   │
+    │   ├── <span class="folder">skills/</span>         <span class="comment"># 技能管理组件</span>
+    │   │   ├── <span class="file">SkillLibrary.tsx</span>    <span class="comment"># 技能列表 + 搜索 + 操作</span>
+    │   │   ├── <span class="file">SkillEditor.tsx</span>     <span class="comment"># SKILL.md 编辑器</span>
+    │   │   ├── <span class="file">NewSkillModal.tsx</span>   <span class="comment"># 创建技能 (上传 / AI 生成)</span>
+    │   │   └── <span class="file">SkillStore.tsx</span>      <span class="comment"># 技能商店 (GitHub)</span>
+    │   │
+    │   └── <span class="folder">shared/</span>         <span class="comment"># 共享组件</span>
+    │       ├── <span class="file">ConfirmDialog.tsx</span>  <span class="comment"># 确认/危险操作对话框</span>
+    │       └── <span class="file">SettingsModal.tsx</span>  <span class="comment"># API Key 设置弹窗</span>
+    │
+    └── <span class="folder">lib/</span>                <span class="comment"># 核心库</span>
+        ├── <span class="file">api.ts</span>          <span class="comment"># API 客户端 (SSE 流式 + fetch)</span>
+        ├── <span class="file">store.tsx</span>       <span class="comment"># React Context 状态管理</span>
+        └── <span class="file">theme.tsx</span>       <span class="comment"># 主题切换 (CSS 变量 + data-theme)</span></div>
+
+<hr class="divider">
+
+<!-- ==================== 7. 常见问题 ==================== -->
+<h2 class="reveal">7. 常见问题与排查</h2>
+
+<div class="reveal">
+  <div class="icon-card">
+    <div class="icon">❓</div>
+    <div class="content">
+      <h4>Q：后端启动报错 "DEEPSEEK_API_KEY not found"</h4>
+      <p><strong>A：</strong>确保 <code>backend/.env</code> 文件存在且包含 <code>DEEPSEEK_API_KEY=sk-your-key</code>。注意 <code>.env</code> 文件不能有 BOM 头（建议用 VS Code 以 UTF-8 编码保存）。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">❓</div>
+    <div class="content">
+      <h4>Q：前端连不上后端，显示网络错误</h4>
+      <p><strong>A：</strong>确认后端正在 <code>:8002</code> 端口运行。检查 <code>frontend/src/lib/api.ts</code> 中的 <code>BASE_URL</code> 是否指向 <code>http://localhost:8002</code>。确保没有防火墙或 CORS 阻止。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">❓</div>
+    <div class="content">
+      <h4>Q：Agent 回复乱码（Windows 环境）</h4>
+      <p><strong>A：</strong>FuFan OpenClaw 已内置 UTF-8/GBK 编码安全机制（<code>utils/encoding.py</code> 的 <code>safe_read_text()</code>）。如果仍然出现编码问题，确保所有 Markdown 文件以 UTF-8 编码保存。<code>terminal</code> 工具已自动执行 <code>chcp 65001</code> 切换控制台编码。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">❓</div>
+    <div class="content">
+      <h4>Q：browser_use 工具报错 "No chromium found"</h4>
+      <p><strong>A：</strong>需要先安装 Playwright Chromium：<code>playwright install chromium</code>。浏览器自动化功能依赖本地 Chromium 二进制文件。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">❓</div>
+    <div class="content">
+      <h4>Q：RAG 模式开启后检索无结果</h4>
+      <p><strong>A：</strong>RAG 模式需要 Embedding 模型支持。确保 <code>.env</code> 中配置了 <code>OPENAI_API_KEY</code> 和 <code>EMBEDDING_MODEL</code>。首次开启 RAG 模式时，后端会自动构建索引（首次较慢，后续增量更新）。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">❓</div>
+    <div class="content">
+      <h4>Q：如何更换为其他模型（GPT-4o / Claude 等）？</h4>
+      <p><strong>A：</strong>修改 <code>.env</code> 中的 <code>DEEPSEEK_BASE_URL</code> 指向对应的 API 端点，<code>DEEPSEEK_API_KEY</code> 填入对应 Key，<code>DEEPSEEK_MODEL</code> 填入模型名。例如使用 OpenRouter：<code>DEEPSEEK_BASE_URL=https://openrouter.ai/api/v1</code>。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">❓</div>
+    <div class="content">
+      <h4>Q：如何添加自定义技能？</h4>
+      <p><strong>A：</strong>方法一：在 <code>/skills</code> 页面使用 AI 创建。方法二：手动在 <code>backend/skills/</code> 下新建目录，创建 <code>SKILL.md</code>（含 YAML frontmatter 和指令正文），重启后端后自动加载。方法三：使用技能商店一键安装社区技能。</p>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 8. 小结 ==================== -->
+<h2 class="reveal">8. 本章小结</h2>
+
+<div class="highlight reveal">
+  <p>通过 Ch 3 的两个小节，我们完整介绍了 FuFan OpenClaw 项目：</p>
+  <ul>
+    <li><strong>Ch 3.1 项目概述与架构设计：</strong>从立项初衷出发，阐述了四大设计理念（文件即记忆、技能即插件、完全透明、轻量化部署），详解了技术选型、系统架构（System Prompt 6 层组装、SSE 9 类事件协议）和六大功能模块。</li>
+    <li><strong>Ch 3.2 安装部署与使用指南：</strong>提供了从零开始的环境搭建、依赖安装、配置文件设置的完整步骤，介绍了每个功能模块的使用方法，并给出了完整的 API 接口参考、项目目录结构和常见问题排查。</li>
+  </ul>
+</div>
+
+<div class="callout callout-success reveal">
+  <div class="callout-icon">🎉</div>
+  <div class="callout-body">
+    <p><strong>恭喜：</strong>至此你已经掌握了 FuFan OpenClaw 的完整架构和使用方法。接下来的正课内容将深入每个模块的<strong>代码实现</strong>，带你从零逐行编写一个完整的 Agent Skills 系统！</p>
+  </div>
+</div>
+
+<script>
+  (function() {
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(function(el) {
+      observer.observe(el);
+    });
+  })();
+</script>
+</body>
+</html>

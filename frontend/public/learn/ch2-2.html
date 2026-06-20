@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #fafafa; color: #333; line-height: 1.8;
+    padding: 2em 2.5em 4em;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1 { font-size: 1.6em; font-weight: 800; margin-bottom: 0.3em; background: linear-gradient(135deg, #B8860B, #D4AF37); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  h1 .sub { display: block; font-size: 0.55em; font-weight: 500; color: #888; -webkit-text-fill-color: #888; margin-top: 0.2em; }
+  h2 { font-size: 1.2em; font-weight: 700; margin: 2em 0 0.6em; color: #333; border-bottom: 2px solid #B8860B; padding-bottom: 0.3em; }
+  h3 { font-size: 1.05em; font-weight: 600; margin: 1.2em 0 0.4em; color: #444; }
+  h4 { font-size: 0.95em; font-weight: 600; margin: 1em 0 0.3em; color: #555; }
+  p { margin: 0.5em 0; color: #555; }
+  strong { color: #333; }
+  a { color: #B8860B; text-decoration: underline; }
+  a:hover { color: #D4AF37; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; background: rgba(184,134,11,0.1); color: #B8860B; }
+  .badge-group { display: flex; gap: 6px; flex-wrap: wrap; margin: 0.5em 0 1.5em; }
+  .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.3em; margin: 0.8em 0; box-shadow: 0 1px 4px rgba(0,0,0,0.04); transition: transform 0.2s, box-shadow 0.2s; }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .card h3, .card h4 { margin-top: 0; }
+  .card-accent { border-left: 3px solid #B8860B; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8em; }
+  @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+  code { background: rgba(184,134,11,0.08); padding: 1px 6px; border-radius: 4px; font-size: 0.88em; color: #B8860B; font-family: "Fira Code", "Cascadia Code", monospace; }
+  pre { background: #1e1e2e; color: #cdd6f4; border-radius: 10px; padding: 1em 1.2em; margin: 0.8em 0; overflow-x: auto; font-size: 0.82em; line-height: 1.6; font-family: "Fira Code", "Cascadia Code", monospace; }
+  pre code { background: none; color: inherit; padding: 0; }
+  /* Syntax highlight classes */
+  .kw { color: #cba6f7; } /* keywords */
+  .fn { color: #89b4fa; } /* function names */
+  .st { color: #a6e3a1; } /* strings */
+  .cm { color: #6c7086; font-style: italic; } /* comments */
+  .num { color: #fab387; } /* numbers */
+  ul, ol { padding-left: 1.5em; }
+  li { margin: 0.3em 0; color: #555; }
+  .steps { counter-reset: step; }
+  .step { counter-increment: step; position: relative; padding-left: 3em; margin: 1.2em 0; }
+  .step::before { content: counter(step); position: absolute; left: 0; top: 0; width: 2em; height: 2em; background: linear-gradient(135deg, #B8860B, #D4AF37); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85em; font-weight: 700; box-shadow: 0 2px 8px rgba(184,134,11,0.3); }
+  .highlight { background: linear-gradient(135deg, rgba(184,134,11,0.06), rgba(212,175,55,0.06)); border: 1px solid rgba(184,134,11,0.15); border-radius: 10px; padding: 1em 1.2em; margin: 1em 0; }
+  .highlight strong { color: #B8860B; }
+  .callout { display: flex; gap: 0.8em; padding: 1em; border-radius: 10px; background: #fffbeb; border: 1px solid #fde68a; margin: 1em 0; }
+  .callout-icon { font-size: 1.3em; line-height: 1; }
+  .callout-body { flex: 1; }
+  .callout-body p { margin: 0; color: #92400e; }
+  .icon-card { display: flex; gap: 1em; align-items: flex-start; padding: 1.2em; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; margin: 0.6em 0; transition: transform 0.2s, box-shadow 0.2s; }
+  .icon-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .icon-card .icon { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, rgba(184,134,11,0.1), rgba(212,175,55,0.1)); display: flex; align-items: center; justify-content: center; font-size: 1.2em; flex-shrink: 0; }
+  .icon-card .content { flex: 1; }
+  .icon-card .content h3, .icon-card .content h4 { margin: 0 0 0.2em; font-size: 0.95em; }
+  .icon-card .content p { margin: 0; font-size: 0.88em; }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, #B8860B, transparent); margin: 2em 0; border: none; }
+  .zoomable { cursor: zoom-in; max-width: 100%; border-radius: 8px; border: 1px solid #e5e7eb; transition: box-shadow 0.2s; display: block; margin: 0.8em auto; }
+  .zoomable:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.12); }
+  .lightbox { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; cursor: zoom-out; }
+  .lightbox.active { display: flex; }
+  .lightbox img { max-width: 92vw; max-height: 92vh; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  .lightbox-close { position: fixed; top: 16px; right: 16px; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.15); color: #fff; border: none; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .lightbox-close:hover { background: rgba(255,255,255,0.3); }
+  .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .arch-flow { display: flex; align-items: center; justify-content: center; gap: 0.5em; flex-wrap: wrap; margin: 1em 0; padding: 1.2em; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; }
+  .arch-flow .node { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.4em 0.8em; font-size: 0.85em; font-weight: 600; color: #444; }
+  .arch-flow .node-accent { background: linear-gradient(135deg, #B8860B, #D4AF37); color: #fff; border-color: transparent; }
+  .arch-flow .node-tool { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+  .arch-flow .arrow { color: #B8860B; font-size: 1.2em; font-weight: 700; }
+  .arch-flow .label { font-size: 0.72em; color: #888; font-weight: 500; }
+  .code-note { background: rgba(184,134,11,0.06); border-left: 3px solid #B8860B; padding: 0.8em 1em; margin: 0.8em 0; border-radius: 0 8px 8px 0; font-size: 0.9em; }
+  .code-note strong { color: #B8860B; }
+</style>
+</head>
+<body>
+
+<h1>
+  Ch 2. 从零到一开发 Agent Skills 系统
+  <span class="sub">二、借助 LangChain 开发 Agent Skills 系统入门</span>
+</h1>
+
+<div class="badge-group">
+  <span class="badge">LangChain 1.x</span>
+  <span class="badge">create_agent</span>
+  <span class="badge">Core Tools</span>
+  <span class="badge">Bootstrap</span>
+  <span class="badge">实战开发</span>
+</div>
+
+<div class="highlight reveal">
+  <p><strong>本节目标：</strong>基于 LangChain 1.x 的最新标准，从零搭建一个支持 Agent Skills 的最小可行系统（MVP）。你将学会构建核心工具层、技能引导层和 Agent 运行时，理解 Skills 系统从"扫描技能"到"执行任务"的完整链路。</p>
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 2.1 系统架构设计 ==================== -->
+<h2 class="reveal">2.1 系统架构设计：MVP 版本</h2>
+
+<p class="reveal">要实现一个真正支持 "Agent Skills" 的系统，我们不能只把目光停留在简单的对话链上。我们需要构建一个具有 <strong>"感知-决策-执行"</strong> 闭环的 <strong>Runtime（运行时）</strong>。</p>
+
+<p class="reveal">基于 LangChain 1.x 的最新标准（特别是 Graph-based 架构），我们将系统架构精简为以下三个核心模块。这个 MVP（最小可行性产品）版本虽然精简，但保留了 OpenClaw 最核心的"灵魂"：</p>
+
+<div class="reveal">
+  <div class="icon-card">
+    <div class="icon">🔍</div>
+    <div class="content">
+      <h4>1. 能力引导层 (Bootstrap)</h4>
+      <p>在系统启动的瞬间，扫描本地 <code>skills</code> 文件夹，提取元数据，生成技能快照 (<code>SKILLS_SNAPSHOT</code>)。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">🔧</div>
+    <div class="content">
+      <h4>2. 核心工具层 (Core Tools)</h4>
+      <p>赋予 Agent "阅读文件" (Eyes) 和 "联网获取" (Hands) 的基础物理能力。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">🧠</div>
+    <div class="content">
+      <h4>3. 智能体运行时 (Agent Runtime)</h4>
+      <p>使用最新的 <code>create_agent</code> API 构建核心大脑，并动态注入 System Prompt，实现对技能的挂载。</p>
+    </div>
+  </div>
+</div>
+
+<h3 class="reveal">架构流程图</h3>
+
+<div class="arch-flow reveal" style="flex-direction: column; gap: 1em;">
+  <!-- Row 1: Context Building -->
+  <div style="display: flex; align-items: center; gap: 0.5em; flex-wrap: wrap; justify-content: center;">
+    <span class="node">Skills 文件夹</span>
+    <span class="arrow">&rarr;</span>
+    <span class="node node-accent">扫描器 (Scanner)</span>
+    <span class="arrow">&rarr;</span>
+    <span class="node node-accent">SKILLS_SNAPSHOT</span>
+    <span class="arrow">&rarr;</span>
+    <span class="node" style="background: #fef3c7; border-color: #fde68a; color: #92400e;">System Prompt</span>
+  </div>
+  <!-- Row 2: Runtime -->
+  <div style="display: flex; align-items: center; gap: 0.5em; flex-wrap: wrap; justify-content: center;">
+    <span class="node">用户指令</span>
+    <span class="arrow">&rarr;</span>
+    <span class="node node-accent">Agent Runtime</span>
+    <span class="arrow">&xrarr;</span>
+    <span class="node node-tool">read_file</span>
+    <span class="arrow">&rarr;</span>
+    <span class="node">SKILL.md</span>
+    <span class="arrow">&xrarr;</span>
+    <span class="node node-accent">Agent Runtime</span>
+    <span class="arrow">&xrarr;</span>
+    <span class="node node-tool">fetch_url</span>
+    <span class="arrow">&rarr;</span>
+    <span class="node">互联网</span>
+  </div>
+  <div class="label" style="text-align: center; width: 100%;">
+    Agent 先读取 SKILL.md 学习 SOP，再根据指令调用 fetch_url 执行任务
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 2.2 核心工具层 ==================== -->
+<h2 class="reveal">2.2 核心工具层 (Core Tools) 实现</h2>
+
+<p class="reveal">Agent Skills 的核心逻辑是：<strong>"Agent 通过阅读文档学会使用工具"</strong>。因此，在 Agent 出厂设置中，必须原生具备两个最基础的工具：<code>read_file</code>（用于读文档）和 <code>fetch_url</code>（用于执行文档里的联网请求）。我们使用 LangChain 的 <code>@tool</code> 装饰器进行封装：</p>
+
+<pre class="reveal"><code><span class="kw">import</span> os
+<span class="kw">from</span> langchain_core.tools <span class="kw">import</span> tool
+<span class="kw">from</span> langchain_community.tools.file_management <span class="kw">import</span> ReadFileTool
+<span class="kw">from</span> langchain_community.tools <span class="kw">import</span> RequestsGetTool
+
+<span class="cm"># --- 工具 1: 安全的文件读取 (The Eyes) ---</span>
+<span class="cm"># 初始化底层工具，强制指定 root_dir 为项目根目录</span>
+<span class="cm"># 安全警告：这是防止 Agent 越狱读取 /etc/passwd 等系统文件的关键！</span>
+raw_read_file = ReadFileTool(root_dir=<span class="st">"./backend/skills"</span>)
+
+<span class="kw">@tool</span>
+<span class="kw">def</span> <span class="fn">read_file</span>(file_path: <span class="fn">str</span>) -> <span class="fn">str</span>:
+    <span class="st">"""
+    用于读取 Agent Skills 的定义文件 (SKILL.md)。
+    输入参数 file_path 必须是相对于 skills 文件夹的路径，
+    例如: 'get_weather/SKILL.md'
+    """</span>
+    <span class="kw">try</span>:
+        <span class="cm"># 在这里可以添加额外的路径检查逻辑</span>
+        <span class="kw">if</span> <span class="st">".."</span> <span class="kw">in</span> file_path:
+            <span class="kw">return</span> <span class="st">"Error: 禁止访问父目录文件。"</span>
+        <span class="kw">return</span> raw_read_file.invoke({<span class="st">"file_path"</span>: file_path})
+    <span class="kw">except</span> Exception <span class="kw">as</span> e:
+        <span class="kw">return</span> <span class="st">f"Error reading file: {str(e)}"</span>
+
+<span class="cm"># --- 工具 2: 联网能力 (The Hands) ---</span>
+<span class="cm"># allow_dangerous_requests=True 是必须的，否则无法访问公网</span>
+raw_requests = RequestsGetTool(allow_dangerous_requests=<span class="kw">True</span>)
+
+<span class="kw">@tool</span>
+<span class="kw">def</span> <span class="fn">fetch_url</span>(url: <span class="fn">str</span>) -> <span class="fn">str</span>:
+    <span class="st">"""
+    用于执行 HTTP GET 请求获取网页或 API 数据。
+    当 Skill 文档要求访问某个 URL 时使用此工具。
+    """</span>
+    <span class="kw">try</span>:
+        <span class="cm"># 实际生产建议：在此处集成 html2text 库，</span>
+        <span class="cm"># 将 HTML 转为 Markdown，减少 Token 消耗</span>
+        response = raw_requests.invoke({<span class="st">"url"</span>: url})
+        <span class="kw">return</span> response[:<span class="num">2000</span>]  <span class="cm"># 简单截断，防止网页内容过长</span>
+    <span class="kw">except</span> Exception <span class="kw">as</span> e:
+        <span class="kw">return</span> <span class="st">f"Error fetching URL: {str(e)}"</span>
+
+<span class="cm"># 将工具打包，准备注入 Agent</span>
+core_tools = [read_file, fetch_url]</code></pre>
+
+<h3 class="reveal">代码深度解析</h3>
+
+<div class="code-note reveal">
+  <strong>沙箱机制 (<code>root_dir</code>)</strong>：注意 <code>ReadFileTool</code> 的初始化。我们并没有让 Agent 满磁盘随便读，而是将它的视野通过 <code>root_dir="./backend/skills"</code> <strong>锁死在技能目录中</strong>。这是 Agent 系统安全设计的<strong>第一道防线</strong>。
+</div>
+
+<div class="code-note reveal">
+  <strong>装饰器 (<code>@tool</code>)</strong>：LangChain 的 <code>@tool</code> 装饰器不仅是将函数转为工具，它还会<strong>自动读取函数的 Docstring（注释）</strong>。<code>read_file</code> 下面那段中文注释最终会被转换成 Prompt 告诉大模型，所以这段注释必须写得<strong>非常精准</strong>。
+</div>
+
+<div class="code-note reveal">
+  <strong>上下文保护 (<code>[:2000]</code>)</strong>：在 <code>fetch_url</code> 中，我们做了简单的截断处理。真实网页往往包含大量无用信息，如果不做处理直接丢给 LLM，不仅浪费钱，还会挤占 Skill 指令的空间。
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 2.3 技能引导层 ==================== -->
+<h2 class="reveal">2.3 技能引导层 (Skill Bootstrap) 实现</h2>
+
+<p class="reveal">Agent 怎么知道自己有哪些技能？我们需要在系统启动时，通过代码自动扫描目录。这被称为 <strong>"Bootstrap（引导过程）"</strong>。我们将编写一个 <code>bootstrap.py</code>，它的作用是生成一份<strong>"技能菜单"</strong>：</p>
+
+<pre class="reveal"><code><span class="kw">import</span> os
+
+<span class="kw">def</span> <span class="fn">generate_skills_snapshot</span>(skills_dir=<span class="st">"./backend/skills"</span>):
+    <span class="st">"""
+    扫描 skills 文件夹，提取元数据，生成 XML 格式的快照
+    """</span>
+    <span class="cm"># 使用 XML 标签包裹，有助于 Claude/GPT 模型</span>
+    <span class="cm"># 更精准地识别结构</span>
+    snapshot = <span class="st">"&lt;available_skills&gt;\n"</span>
+
+    <span class="cm"># 1. 遍历 skills 目录下的所有子文件夹</span>
+    <span class="kw">if not</span> os.path.exists(skills_dir):
+        <span class="kw">return</span> <span class="st">"&lt;available_skills&gt;No skills found.&lt;/available_skills&gt;"</span>
+
+    <span class="kw">for</span> skill_name <span class="kw">in</span> os.listdir(skills_dir):
+        skill_path = os.path.join(skills_dir, skill_name, <span class="st">"SKILL.md"</span>)
+
+        <span class="cm"># 2. 校验：只有包含 SKILL.md 的文件夹才被视为有效技能</span>
+        <span class="kw">if</span> os.path.exists(skill_path):
+            <span class="cm"># 3. 读取 SKILL.md 的内容</span>
+            <span class="cm"># 实际项目中建议只读前几行元数据</span>
+            <span class="kw">with</span> <span class="fn">open</span>(skill_path, <span class="st">'r'</span>, encoding=<span class="st">'utf-8'</span>) <span class="kw">as</span> f:
+                content = f.read()
+
+            <span class="cm"># 简单提取：实际生产中应使用 YAML Frontmatter 解析库</span>
+            snapshot += <span class="st">f"""  &lt;skill&gt;
+    &lt;name&gt;{skill_name}&lt;/name&gt;
+    &lt;path&gt;{skill_name}/SKILL.md&lt;/path&gt;
+    &lt;description&gt;（该技能的动态描述）&lt;/description&gt;
+  &lt;/skill&gt;\n"""</span>
+
+    snapshot += <span class="st">"&lt;/available_skills&gt;"</span>
+    <span class="kw">return</span> snapshot</code></pre>
+
+<h3 class="reveal">代码深度解析</h3>
+
+<div class="code-note reveal">
+  <strong>为什么用 XML？</strong>注意 <code>snapshot</code> 变量使用了 <code>&lt;available_skills&gt;</code> 这种 XML 标签。在最新的 Prompt Engineering 实践中（特别是 Claude 系列），模型对 XML 结构的理解能力<strong>远强于 JSON 或纯文本列表</strong>。这能显著提高 Agent 检索技能的准确率。
+</div>
+
+<div class="code-note reveal">
+  <strong>动态扫描实现"热插拔"</strong>：这个函数的存在，实现了技能的<strong>热插拔</strong>。你只需要在文件夹里新建一个 <code>get_stock</code> 目录，下次运行代码时，这个函数就会自动把它加入到 Agent 的菜单里，<strong>完全不需要修改核心代码</strong>。
+</div>
+
+<div class="code-note reveal">
+  <strong>路径映射</strong>：注意 <code>&lt;path&gt;</code> 标签。我们告诉了 Agent 技能的名称，同时告诉了它<strong>文件在哪里</strong>。这为后续 Agent 调用 <code>read_file</code> 埋下了伏笔。
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 2.4 Agent 运行时构建 ==================== -->
+<h2 class="reveal">2.4 Agent 运行时构建 (LangChain 1.x Standard)</h2>
+
+<p class="reveal">这是最关键的一步。在 <strong>LangChain 1.x</strong> 中，官方引入了基于 Graph 理念的 <strong><code>create_agent</code></strong> API，它自动封装了"思考-工具调用-再思考"的复杂循环。</p>
+
+<pre class="reveal"><code><span class="kw">from</span> langchain.agents <span class="kw">import</span> create_agent  <span class="cm"># LangChain 1.x 新标准 API</span>
+<span class="kw">from</span> langchain_openai <span class="kw">import</span> ChatOpenAI
+<span class="kw">from</span> langchain_core.messages <span class="kw">import</span> SystemMessage
+
+<span class="cm"># 1. 初始化模型</span>
+<span class="cm"># 建议使用 gpt-4o 或 claude-3-5-sonnet</span>
+<span class="cm"># 因为它们对 Function Calling 的支持最稳健</span>
+model = ChatOpenAI(model=<span class="st">"gpt-4o"</span>, temperature=<span class="num">0</span>)
+
+<span class="cm"># 2. 动态构建 System Prompt (核心魔法)</span>
+<span class="cm"># 将刚才生成的 Skill Snapshot 注入到提示词中</span>
+snapshot_content = generate_skills_snapshot()
+
+<span class="cm"># 这里定义了 Agent 的"元指令" (Meta-Instructions)</span>
+<span class="cm"># 这段 Prompt 决定了 Agent 的行为模式</span>
+system_instruction = <span class="st">f"""你是一个基于 Agent Skills 架构的智能助手。
+
+【能力清单】
+你拥有以下技能列表 (SKILLS_SNAPSHOT)，
+它们定义了你的专业能力：
+{snapshot_content}
+
+【核心协议 (CRITICAL)】
+1. 当用户请求的任务匹配上述技能时，
+   你**严禁**直接猜测操作步骤。
+2. 你的第一步行动**必须**是调用 `read_file` 工具，
+   读取该技能对应的 `&lt;path&gt;` 文件。
+3. 读取文件后，严格按照文件中的 Steps (步骤)
+   指导去执行任务。
+"""</span>
+
+<span class="cm"># 3. 构建 Agent Runtime</span>
+<span class="cm"># create_agent 自动将 model 和 tools 绑定，</span>
+<span class="cm"># 并处理工具调用的循环逻辑</span>
+agent_executor = create_agent(
+    model=model,
+    tools=core_tools,
+    system_prompt=system_instruction,
+)
+
+<span class="cm"># 4. 执行测试：模拟用户提问</span>
+<span class="kw">if</span> __name__ == <span class="st">"__main__"</span>:
+    <span class="fn">print</span>(<span class="st">">>> Agent System Initialized."</span>)
+    <span class="fn">print</span>(<span class="st">">>> User: 帮我查一下北京现在的天气"</span>)
+
+    <span class="cm"># stream 方法允许我们看到 Agent 的思考过程</span>
+    events = agent_executor.stream(
+        {<span class="st">"messages"</span>: [(<span class="st">"user"</span>, <span class="st">"帮我查一下北京现在的天气"</span>)]},
+        stream_mode=<span class="st">"values"</span>
+    )
+
+    <span class="kw">for</span> event <span class="kw">in</span> events:
+        <span class="kw">if</span> <span class="st">"messages"</span> <span class="kw">in</span> event:
+            last_msg = event[<span class="st">"messages"</span>][-<span class="num">1</span>]
+            <span class="fn">print</span>(<span class="st">f"[{last_msg.type.upper()}]: {last_msg.content}"</span>)</code></pre>
+
+<h3 class="reveal">代码深度解析</h3>
+
+<div class="code-note reveal">
+  <strong>System Prompt 的动态注入</strong>：这是整个系统的灵魂。变量 <code>snapshot_content</code> 是<strong>运行时生成的</strong>，这意味着 Agent 的知识库是活的。每次新增或删除技能文件夹，Agent 的能力清单都会自动更新。
+</div>
+
+<div class="code-note reveal">
+  <strong>核心协议 (CRITICAL)</strong>：我们在 System Prompt 中用<strong>加粗</strong>语气写了一段"核心协议"。这是为了<strong>对抗大模型的幻觉</strong>。大模型有时候会"自作聪明"，觉得自己知道怎么查天气就直接编造 API。我们必须强制它：<strong>"先读文件，再行动"</strong>。
+</div>
+
+<div class="code-note reveal">
+  <strong><code>create_agent</code> API</strong>：这个 API 是 LangChain 1.x 的集大成者：
+  <ul style="margin-top: 0.5em;">
+    <li>自动识别 Model 是否支持 Tool Calling</li>
+    <li>自动把 <code>core_tools</code> 里的函数签名转换为 OpenAI 格式的 JSON Schema</li>
+    <li>自动管理对话历史（Memory），Tool 返回结果后自动喂回给模型进行下一轮推理</li>
+    <li>开发者不再需要手写 <code>while</code> 循环来处理"多步执行"</li>
+  </ul>
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 2.5 FuFan-OpenClaw PRD ==================== -->
+<h2 class="reveal">2.5 FuFan-OpenClaw 需求文档</h2>
+
+<p class="reveal">以上 MVP 版本展示了 Agent Skills 系统的核心原理。而 FuFan OpenClaw 项目则是在此基础上的<strong>企业级完整实现</strong>，增加了 7 个核心工具、SSE 流式通信、五层记忆架构、Canvas/A2UI 可视化输出等高级特性。</p>
+
+<img class="zoomable reveal" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211203817181.png" onclick="openLightbox(this.src)" alt="FuFan-OpenClaw 需求文档" style="max-width: 100%;">
+
+<div class="highlight reveal">
+  <p><strong>从 MVP 到 FuFan OpenClaw 的演进路径：</strong></p>
+</div>
+
+<div class="grid reveal">
+  <div class="card card-accent">
+    <h4>工具扩展：2 &rarr; 7</h4>
+    <ul>
+      <li><code>read_file</code> + <code>fetch_url</code> 升级为沙箱版</li>
+      <li>新增 <code>terminal</code>（Shell 命令）</li>
+      <li>新增 <code>python_repl</code>（Python 执行）</li>
+      <li>新增 <code>search_knowledge_base</code>（RAG 检索）</li>
+      <li>新增 <code>browser_use</code>（浏览器自动化）</li>
+      <li>新增 <code>tavily_search</code>（网络搜索）</li>
+    </ul>
+  </div>
+  <div class="card card-accent">
+    <h4>架构升级</h4>
+    <ul>
+      <li>前后端分离（FastAPI + Next.js 14）</li>
+      <li>SSE 流式通信（9 种事件类型）</li>
+      <li>五层记忆架构（SOUL/IDENTITY/USER/AGENTS/MEMORY）</li>
+      <li>Canvas/A2UI 可视化输出协议</li>
+      <li>LlamaIndex RAG 混合检索（BM25 + 向量）</li>
+      <li>双色主题系统（Bronze/Gold）</li>
+    </ul>
+  </div>
+</div>
+
+<div class="callout reveal">
+  <div class="callout-icon">📖</div>
+  <div class="callout-body">
+    <p><strong>深入了解：</strong>关于 FuFan OpenClaw 的完整架构设计、技术选型和功能模块，请参阅 <strong>Ch 3.1 项目概述与架构设计</strong>；关于安装部署和使用方法，请参阅 <strong>Ch 3.2 安装部署与使用指南</strong>。</p>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 本节小结 ==================== -->
+<h2 class="reveal">本节小结</h2>
+
+<div class="highlight reveal">
+  <p>通过 Ch 2 的两个小节，我们完成了从<strong>理论到实践</strong>的完整路径：</p>
+  <ul>
+    <li><strong>Ch 2.1 Agent Skills 官方范式深度解析：</strong>理解了 Skill 的核心定义（Metadata + Instructions + Examples + Tools）、三层渐进式加载机制、SKILL.md 标准协议、Skill/Tool/MCP 的边界划分，并通过 get_weather 和 docx 两个案例体会了简单 Skill 和复杂 Skill 的设计差异。</li>
+    <li><strong>Ch 2.2 LangChain Agent Skills 系统开发实战：</strong>用 LangChain 1.x 的 <code>create_agent</code> API 从零构建了一个 MVP 系统，包括核心工具层（read_file + fetch_url）、技能引导层（Bootstrap Scanner）和 Agent 运行时，并了解了 FuFan OpenClaw 在此基础上的企业级演进方向。</li>
+  </ul>
+</div>
+
+<div class="callout reveal">
+  <div class="callout-icon">🎯</div>
+  <div class="callout-body">
+    <p><strong>下一步：</strong>查看 Ch 3（FuFan OpenClaw 项目开发指南），了解如何将这套 Agent Skills 系统打造成一个完整的、可部署的企业级产品。</p>
+  </div>
+</div>
+
+<!-- ==================== LIGHTBOX ==================== -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+  <img id="lightbox-img" src="" alt="Preview" />
+</div>
+
+<script>
+  function openLightbox(src) {
+    var lb = document.getElementById('lightbox');
+    var img = document.getElementById('lightbox-img');
+    img.src = src;
+    lb.classList.add('active');
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('active');
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeLightbox();
+  });
+  (function() {
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(function(el) {
+      observer.observe(el);
+    });
+  })();
+</script>
+</body>
+</html>

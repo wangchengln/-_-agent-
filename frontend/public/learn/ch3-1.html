@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #fafafa; color: #333; line-height: 1.8;
+    padding: 2em 2.5em 4em;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1 { font-size: 1.6em; font-weight: 800; margin-bottom: 0.3em; background: linear-gradient(135deg, #B8860B, #D4AF37); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  h1 .sub { display: block; font-size: 0.55em; font-weight: 500; color: #888; -webkit-text-fill-color: #888; margin-top: 0.2em; }
+  h2 { font-size: 1.2em; font-weight: 700; margin: 2em 0 0.6em; color: #333; border-bottom: 2px solid #B8860B; padding-bottom: 0.3em; }
+  h3 { font-size: 1.05em; font-weight: 600; margin: 1.2em 0 0.4em; color: #444; }
+  h4 { font-size: 0.95em; font-weight: 600; margin: 1em 0 0.3em; color: #555; }
+  p { margin: 0.5em 0; color: #555; }
+  strong { color: #333; }
+  a { color: #B8860B; text-decoration: underline; }
+  a:hover { color: #D4AF37; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; background: rgba(184,134,11,0.1); color: #B8860B; }
+  .badge-group { display: flex; gap: 6px; flex-wrap: wrap; margin: 0.5em 0 1.5em; }
+  .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.3em; margin: 0.8em 0; box-shadow: 0 1px 4px rgba(0,0,0,0.04); transition: transform 0.2s, box-shadow 0.2s; }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .card h3, .card h4 { margin-top: 0; }
+  .card-accent { border-left: 3px solid #B8860B; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8em; }
+  @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+  code { background: rgba(184,134,11,0.08); padding: 1px 6px; border-radius: 4px; font-size: 0.88em; color: #B8860B; font-family: "Fira Code", "Cascadia Code", monospace; }
+  pre { background: #1e1e2e; color: #cdd6f4; border-radius: 10px; padding: 1em 1.2em; margin: 0.8em 0; overflow-x: auto; font-size: 0.85em; line-height: 1.6; font-family: "Fira Code", "Cascadia Code", monospace; }
+  pre code { background: none; color: inherit; padding: 0; }
+  ul, ol { padding-left: 1.5em; }
+  li { margin: 0.3em 0; }
+  .steps { counter-reset: step; }
+  .step { counter-increment: step; position: relative; padding-left: 3em; margin: 1.2em 0; }
+  .step::before { content: counter(step); position: absolute; left: 0; top: 0; width: 2em; height: 2em; background: linear-gradient(135deg, #B8860B, #D4AF37); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85em; font-weight: 700; box-shadow: 0 2px 8px rgba(184,134,11,0.3); }
+  .highlight { background: linear-gradient(135deg, rgba(184,134,11,0.06), rgba(212,175,55,0.06)); border: 1px solid rgba(184,134,11,0.15); border-radius: 10px; padding: 1em 1.2em; margin: 1em 0; }
+  .highlight strong { color: #B8860B; }
+  .callout { display: flex; gap: 0.8em; padding: 1em; border-radius: 10px; background: #fffbeb; border: 1px solid #fde68a; margin: 1em 0; }
+  .callout-icon { font-size: 1.3em; line-height: 1; }
+  .callout-body { flex: 1; }
+  .callout-body p { margin: 0; color: #92400e; }
+  .compare-table { width: 100%; border-collapse: collapse; margin: 1em 0; font-size: 0.88em; }
+  .compare-table th { background: linear-gradient(135deg, #B8860B, #D4AF37); color: #fff; padding: 0.6em 0.8em; text-align: left; font-weight: 600; }
+  .compare-table td { padding: 0.5em 0.8em; border-bottom: 1px solid #e5e7eb; }
+  .compare-table tr:hover td { background: rgba(184,134,11,0.04); }
+  .icon-card { display: flex; gap: 1em; align-items: flex-start; padding: 1.2em; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; margin: 0.6em 0; transition: transform 0.2s, box-shadow 0.2s; }
+  .icon-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .icon-card .icon { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, rgba(184,134,11,0.1), rgba(212,175,55,0.1)); display: flex; align-items: center; justify-content: center; font-size: 1.2em; flex-shrink: 0; }
+  .icon-card .content { flex: 1; }
+  .icon-card .content h3, .icon-card .content h4 { margin: 0 0 0.2em; font-size: 0.95em; }
+  .icon-card .content p { margin: 0; font-size: 0.88em; }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, #B8860B, transparent); margin: 2em 0; border: none; }
+  .zoomable { cursor: zoom-in; max-width: 100%; border-radius: 8px; border: 1px solid #e5e7eb; transition: box-shadow 0.2s; display: block; margin: 0.8em auto; }
+  .zoomable:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.12); }
+  .lightbox { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; cursor: zoom-out; }
+  .lightbox.active { display: flex; }
+  .lightbox img { max-width: 92vw; max-height: 92vh; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  .lightbox-close { position: fixed; top: 16px; right: 16px; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.15); color: #fff; border: none; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .lightbox-close:hover { background: rgba(255,255,255,0.3); }
+  .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .video-player { width: 100%; max-width: 100%; border-radius: 10px; margin: 0.5em 0; border: 1px solid #e5e7eb; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .arch-flow { display: flex; align-items: center; justify-content: center; gap: 0.5em; flex-wrap: wrap; margin: 1em 0; }
+  .arch-flow .node { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.4em 0.8em; font-size: 0.85em; font-weight: 600; color: #444; }
+  .arch-flow .node-accent { background: linear-gradient(135deg, #B8860B, #D4AF37); color: #fff; border-color: transparent; }
+  .arch-flow .arrow { color: #B8860B; font-size: 1.2em; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<h1>
+  Ch 3. FuFan OpenClaw 项目开发指南
+  <span class="sub">一、项目概述与架构设计</span>
+</h1>
+
+<div class="badge-group">
+  <span class="badge">FuFan OpenClaw</span>
+  <span class="badge">赋范空间</span>
+  <span class="badge">LangChain</span>
+  <span class="badge">FastAPI</span>
+  <span class="badge">Next.js 14</span>
+  <span class="badge">透明架构</span>
+</div>
+
+<!-- ===== 项目演示视频 ===== -->
+<div class="card reveal" style="text-align: center;">
+  <h3>FuFan OpenClaw 功能演示</h3>
+  <video class="video-player" controls preload="metadata">
+    <source src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/df634166ae519e6288e31c7af4e43ac3_raw.mp4" type="video/mp4">
+    您的浏览器不支持视频播放
+  </video>
+  <p style="font-size: 0.85em; color: #888; margin-top: 0.5em;">FuFan OpenClaw — 轻量级、透明的 AI Agent 系统完整演示</p>
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 1. 立项初衷 ==================== -->
+<h2 class="reveal">1. 立项初衷：为什么要开发 FuFan OpenClaw？</h2>
+
+<p class="reveal">OpenClaw 是当前全球最火热的 Agent Skills 开源项目，拥有近 20 万 Star 和超过 5 万个社区 Skills。然而，当我们尝试将其应用于企业级场景时，发现了几个核心痛点：</p>
+
+<div class="grid reveal">
+  <div class="card card-accent">
+    <h4>问题一：架构过于庞大</h4>
+    <p>OpenClaw 原版是一个功能完备的"AI 操作系统"，代码量巨大，依赖复杂。对于想要学习 Agent Skills 原理或进行二次开发的团队来说，上手成本极高。</p>
+  </div>
+  <div class="card card-accent">
+    <h4>问题二：黑盒化严重</h4>
+    <p>虽然 Skills 本身是透明的 Markdown，但 OpenClaw 的运行时（Runtime）内部逻辑对开发者并不友好。System Prompt 如何拼接、工具如何调度、上下文如何管理——这些关键细节被封装在深层抽象中。</p>
+  </div>
+  <div class="card card-accent">
+    <h4>问题三：部署依赖重</h4>
+    <p>原版依赖 Redis、PostgreSQL 等外部服务，对于个人开发者或小团队来说，部署门槛过高。</p>
+  </div>
+  <div class="card card-accent">
+    <h4>问题四：教学适配性差</h4>
+    <p>作为教学项目，我们需要学生能够清晰看到每一步的执行过程——System Prompt 怎么拼的、工具怎么调的、Skills 怎么加载的——而非仅仅看到最终结果。</p>
+  </div>
+</div>
+
+<div class="highlight reveal">
+  <p>基于以上考量，<a href="https://fufan.ai" target="_blank"><strong>赋范空间</strong></a>技术团队决定以 OpenClaw 的设计范式为蓝本，使用 LangChain 从零重新实现一版 <strong>轻量级、全透明、零外部依赖</strong> 的 Agent Skills 系统——<strong>FuFan OpenClaw</strong>。</p>
+</div>
+
+<div class="callout reveal">
+  <div class="callout-icon">🎯</div>
+  <div class="callout-body">
+    <p><strong>定位：</strong>FuFan OpenClaw 不是 OpenClaw 的"阉割版"，而是一个面向教学和企业定制场景的<strong>参考实现</strong>。它完整复刻了 Agent Skills 的核心范式（指令驱动技能、动态上下文加载、热插拔架构），同时将所有运行细节完全暴露给开发者。</p>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 2. 四大设计理念 ==================== -->
+<h2 class="reveal">2. 四大设计理念</h2>
+
+<div class="reveal">
+  <div class="icon-card">
+    <div class="icon">📂</div>
+    <div class="content">
+      <h4>文件即记忆 (File-as-Memory)</h4>
+      <p>拒绝不透明的向量数据库黑盒。所有记忆以 Markdown 文件存储（SOUL.md、IDENTITY.md、USER.md、AGENTS.md、MEMORY.md），用户可以随时打开编辑。你看到的就是 Agent 的全部"大脑"。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">🧩</div>
+    <div class="content">
+      <h4>技能即插件 (Skill-as-Plugin)</h4>
+      <p>遵循 Anthropic Agent Skills 范式。技能是 Markdown 指令文件（<code>SKILL.md</code>），不是 Python 函数。把文件夹拖入 <code>skills/</code> 目录即可扩展 Agent 能力，无需编译、无需重启。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">🔍</div>
+    <div class="content">
+      <h4>完全透明 (Full Transparency)</h4>
+      <p>System Prompt 的拼接顺序、每一次工具调用的输入输出、记忆的读写时机——所有运行细节都可以在前端的"原始消息面板"中实时查看。没有黑盒，没有魔法。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">🪶</div>
+    <div class="content">
+      <h4>轻量化部署 (Zero External Dependencies)</h4>
+      <p>不依赖 MySQL、Redis、PostgreSQL 或任何外部数据库。所有数据（会话、记忆、技能、配置）都以 JSON/Markdown 文件存储在本地文件系统。一台笔记本就能跑。</p>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 3. 技术选型 ==================== -->
+<h2 class="reveal">3. 技术选型</h2>
+
+<p class="reveal">FuFan OpenClaw 的技术栈经过精心挑选，每一项选择都有明确的工程理由：</p>
+
+<table class="compare-table reveal">
+  <thead>
+    <tr><th>模块</th><th>技术选型</th><th>选型理由</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>后端框架</strong></td><td>Python 3.10+ / FastAPI</td><td>原生 async/await 支持，SSE 流式响应性能优异</td></tr>
+    <tr><td><strong>Agent 引擎</strong></td><td>LangChain 1.x <code>create_agent</code> API</td><td>最新的轻量级 Agent 构建接口，替代笨重的 AgentExecutor</td></tr>
+    <tr><td><strong>模型接口</strong></td><td>DeepSeek / OpenAI API 兼容</td><td>通过 <code>langchain_deepseek</code> 接入，兼容 OpenRouter、Claude 等</td></tr>
+    <tr><td><strong>RAG 检索</strong></td><td>LlamaIndex Core (BM25 + 向量混合)</td><td>关键词 + 语义双通道检索，精度远超纯向量方案</td></tr>
+    <tr><td><strong>浏览器自动化</strong></td><td>browser-use + Playwright</td><td>Agent 可操控真实浏览器完成网页任务</td></tr>
+    <tr><td><strong>前端框架</strong></td><td>Next.js 14 (App Router) / TypeScript</td><td>React 全栈框架，SSR + 静态导出，类型安全</td></tr>
+    <tr><td><strong>UI 样式</strong></td><td>Tailwind CSS + CSS 自定义属性</td><td>原子化 CSS + 主题变量系统，零运行时开销</td></tr>
+    <tr><td><strong>代码编辑器</strong></td><td>Monaco Editor</td><td>VS Code 同款编辑器内核，记忆/技能编辑体验一流</td></tr>
+    <tr><td><strong>数据存储</strong></td><td>本地文件系统 (JSON + Markdown)</td><td>零依赖、完全透明、随时可用文本编辑器查看</td></tr>
+  </tbody>
+</table>
+
+<div class="callout reveal">
+  <div class="callout-icon">💡</div>
+  <div class="callout-body">
+    <p><strong>关键决策：为什么选择 <code>create_agent</code> 而非 <code>AgentExecutor</code>？</strong></p>
+    <p>LangChain 1.x 引入的 <code>create_agent</code> API 基于 LangGraph 状态机，支持原生的双模式流式输出（<code>messages</code> + <code>updates</code>），可以同时获取 Token 级流式内容和工具调用的结构化事件。这是实现"完全透明"的技术基础。旧版 <code>AgentExecutor</code> 无法做到这一点。</p>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 4. 系统架构 ==================== -->
+<h2 class="reveal">4. 系统架构总览</h2>
+
+<h3 class="reveal">4.1 前后端分离架构</h3>
+
+<p class="reveal">FuFan OpenClaw 采用经典的前后端分离设计，通过 HTTP + SSE 通信：</p>
+
+<div class="arch-flow reveal">
+  <span class="node">用户浏览器</span>
+  <span class="arrow">&rarr;</span>
+  <span class="node node-accent">Next.js 14 前端 (:3000)</span>
+  <span class="arrow">&xrarr; HTTP / SSE &xrarr;</span>
+  <span class="node node-accent">FastAPI 后端 (:8002)</span>
+  <span class="arrow">&rarr;</span>
+  <span class="node">DeepSeek LLM</span>
+</div>
+
+<div class="grid reveal">
+  <div class="card">
+    <h4>前端（Next.js 14）</h4>
+    <ul>
+      <li>三页面路由：<code>/</code>（对话）、<code>/memory</code>（记忆）、<code>/skills</code>（技能）</li>
+      <li>SSE 流式接收 Agent 响应</li>
+      <li>React Context 全局状态管理</li>
+      <li>Monaco Editor 在线编辑</li>
+      <li>双色主题 (Bronze / Gold)</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>后端（FastAPI）</h4>
+    <ul>
+      <li>LangChain Agent 状态机引擎</li>
+      <li>7 个 LangChain BaseTool 工具</li>
+      <li>System Prompt 动态组装</li>
+      <li>JSON 文件会话持久化</li>
+      <li>LlamaIndex RAG 混合检索</li>
+    </ul>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== 4.2 System Prompt 组装 ===== -->
+<h3 class="reveal">4.2 System Prompt 组装流程</h3>
+
+<p class="reveal">这是 FuFan OpenClaw 最核心的设计之一。每次用户发送消息时，后端都会<strong>重新读取</strong>所有 Markdown 文件，按固定顺序拼接成完整的 System Prompt。这意味着你可以随时修改任何记忆文件，下一条消息就会生效。</p>
+
+<div class="card reveal">
+  <h4>拼接顺序（自上而下）</h4>
+  <div class="steps">
+    <div class="step"><code>SKILLS_SNAPSHOT.md</code> — 自动生成的技能清单索引（名称 + 描述 + 路径）</div>
+    <div class="step"><code>workspace/SOUL.md</code> — Agent 人格灵魂：核心原则、行为边界、沟通风格</div>
+    <div class="step"><code>workspace/IDENTITY.md</code> — 身份信息：名称、版本、定位、语言偏好</div>
+    <div class="step"><code>workspace/USER.md</code> — 用户画像：职业、偏好、技术栈</div>
+    <div class="step"><code>workspace/AGENTS.md</code> — 操作协议：技能调用流程、记忆协议、工具规范、Canvas 输出协议</div>
+    <div class="step"><code>memory/MEMORY.md</code> — 跨会话长期记忆</div>
+  </div>
+  <div class="callout" style="margin-top: 0.8em;">
+    <div class="callout-icon">⚠️</div>
+    <div class="callout-body">
+      <p><strong>安全机制：</strong>任何单个组件超过 20,000 字符时，系统自动截断并附加 <code>...[truncated]</code> 标记，防止 Token 爆炸。</p>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== 4.3 SSE 流式通信 ===== -->
+<h3 class="reveal">4.3 SSE 流式事件协议</h3>
+
+<p class="reveal">前后端通过 Server-Sent Events (SSE) 实现实时通信。后端在 Agent 执行过程中，向前端推送以下类型的事件：</p>
+
+<table class="compare-table reveal">
+  <thead>
+    <tr><th>事件类型</th><th>说明</th><th>用途</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>token</code></td><td>模型生成的文字片段</td><td>逐字显示 Agent 回复</td></tr>
+    <tr><td><code>tool_start</code></td><td>开始调用工具（含工具名和参数）</td><td>显示 ThoughtChain 展开动画</td></tr>
+    <tr><td><code>tool_end</code></td><td>工具执行完毕（含返回结果）</td><td>更新 ThoughtChain 结果内容</td></tr>
+    <tr><td><code>new_response</code></td><td>工具调用后的新一轮回复开始</td><td>分段显示"思考过程"与"最终回复"</td></tr>
+    <tr><td><code>retrieval</code></td><td>RAG 检索结果</td><td>显示 RetrievalCard 检索来源</td></tr>
+    <tr><td><code>canvas</code></td><td>Agent 输出的 HTML 内容</td><td>右侧 CanvasPanel 渲染预览</td></tr>
+    <tr><td><code>title</code></td><td>AI 为当前会话生成的标题</td><td>侧边栏会话列表显示</td></tr>
+    <tr><td><code>done</code></td><td>完整回复结束</td><td>停止 loading 状态</td></tr>
+    <tr><td><code>error</code></td><td>执行出错</td><td>显示错误提示</td></tr>
+  </tbody>
+</table>
+
+<hr class="divider">
+
+<!-- ==================== 5. 功能模块总览 ==================== -->
+<h2 class="reveal">5. 六大功能模块</h2>
+
+<!-- ===== 5.1 对话系统 ===== -->
+<h3 class="reveal">5.1 智能对话系统</h3>
+
+<div class="grid reveal">
+  <div class="card card-accent">
+    <h4>流式对话</h4>
+    <p>基于 SSE 的逐 Token 流式输出，Agent 的每一个字都实时显示在界面上，响应延迟感知低于 200ms。</p>
+  </div>
+  <div class="card card-accent">
+    <h4>ThoughtChain 可视化</h4>
+    <p>Agent 的每一次工具调用都以可展开/收起的"思考链"形式呈现。用户可以看到 Agent 调了什么工具、传了什么参数、返回了什么结果。</p>
+  </div>
+  <div class="card card-accent">
+    <h4>原始消息面板</h4>
+    <p>点击"查看原始消息"，右侧弹出调试面板，完整展示 System / User / Assistant / Tool 消息队列，包括 <code>tool_calls</code> 的结构化数据。</p>
+  </div>
+  <div class="card card-accent">
+    <h4>会话管理</h4>
+    <p>支持多会话并行、重命名、删除。会话以 JSON 文件持久化存储，结构为 <code>{title, created_at, updated_at, messages}</code>。</p>
+  </div>
+</div>
+
+<!-- ===== 5.2 Canvas/A2UI ===== -->
+<h3 class="reveal">5.2 Canvas/A2UI 可视化输出</h3>
+
+<div class="card card-accent reveal">
+  <h4>Agent-to-UI 协议</h4>
+  <p>Agent 可以生成可交互的 HTML 内容（网页、图表、互动游戏、数据仪表盘等）。当 Agent 在回复中输出 <code>&lt;openclaw-canvas&gt;</code> 标签包裹的 HTML 时，后端检测并发送 <code>canvas</code> SSE 事件，前端在右侧 CanvasPanel 中通过沙箱化 iframe 实时渲染。</p>
+  <p><strong>示例</strong>：输入"帮我写一个 HTML 贪吃蛇游戏"，Agent 会生成完整的 HTML 并在 Canvas 面板中呈现可玩的游戏。</p>
+</div>
+
+<!-- ===== 5.3 记忆系统 ===== -->
+<h3 class="reveal">5.3 五层记忆架构</h3>
+
+<div class="reveal">
+  <div class="icon-card">
+    <div class="icon">🧠</div>
+    <div class="content">
+      <h4>SOUL.md — 人格灵魂</h4>
+      <p>定义 Agent 的核心原则：透明优先、文件即记忆、技能即学习、安全边界。以及沟通风格：简洁、准确、坦诚。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">🪪</div>
+    <div class="content">
+      <h4>IDENTITY.md — 身份信息</h4>
+      <p>名称（fufan OpenClaw）、版本号、定位（本地透明AI助手）、语言偏好（默认中文）。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">👤</div>
+    <div class="content">
+      <h4>USER.md — 用户画像</h4>
+      <p>记录用户的职业、技术栈、偏好等信息。Agent 会根据用户画像调整回复风格和深度。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">📋</div>
+    <div class="content">
+      <h4>AGENTS.md — 操作协议</h4>
+      <p>Agent 的完整操作手册：技能调用协议（先读取再执行）、记忆协议（何时写入 MEMORY.md）、7 大工具使用规范、Canvas 输出规范。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">💾</div>
+    <div class="content">
+      <h4>MEMORY.md — 长期记忆</h4>
+      <p>跨会话持久化的重要信息。Agent 在对话中发现值得记住的内容时，会主动写入此文件。用户也可直接编辑。</p>
+    </div>
+  </div>
+</div>
+
+<p class="reveal">前端提供了完整的记忆管理页面（<code>/memory</code>），包含 <strong>Monaco 编辑器</strong>实时编辑和 <strong>AI 优化</strong>功能（一键让 AI 帮你整理和精简记忆内容）。</p>
+
+<!-- ===== 5.4 技能系统 ===== -->
+<h3 class="reveal">5.4 技能系统</h3>
+
+<div class="card card-accent reveal">
+  <h4>核心机制</h4>
+  <p>技能 = <code>skills/{name}/SKILL.md</code> 文件。每个技能都是一份用自然语言编写的 SOP（操作手册），包含 YAML frontmatter（名称 + 描述）和 Markdown 正文（触发条件 + 执行步骤 + 示例）。</p>
+  <p>Agent 通过 <code>read_file</code> 工具读取技能文件内容，在上下文中学习步骤后，结合核心工具自主执行。</p>
+</div>
+
+<div class="grid reveal">
+  <div class="card">
+    <h4>技能商店 (SkillStore)</h4>
+    <p>从 GitHub 仓库浏览社区技能，一键安装到本地 <code>skills/</code> 目录。</p>
+  </div>
+  <div class="card">
+    <h4>AI 创建技能</h4>
+    <p>描述你想要的技能，AI 自动生成规范的 <code>SKILL.md</code> 文件。</p>
+  </div>
+  <div class="card">
+    <h4>文件夹上传</h4>
+    <p>拖入包含 <code>SKILL.md</code> 的文件夹即可添加技能，支持热加载。</p>
+  </div>
+  <div class="card">
+    <h4>管理面板</h4>
+    <p>搜索、启用/禁用、在线编辑、删除技能。Monaco 编辑器支持 Markdown 语法高亮。</p>
+  </div>
+</div>
+
+<!-- ===== 5.5 七大工具 ===== -->
+<h3 class="reveal">5.5 七大核心工具</h3>
+
+<table class="compare-table reveal">
+  <thead>
+    <tr><th>工具</th><th>名称</th><th>功能</th><th>安全机制</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>命令行</strong></td><td><code>terminal</code></td><td>执行 Shell 命令</td><td>沙箱目录限制 + 危险命令黑名单 + 30s 超时</td></tr>
+    <tr><td><strong>Python</strong></td><td><code>python_repl</code></td><td>执行 Python 代码</td><td>UTF-8 强制编码 + 输出截断 (5000 字符)</td></tr>
+    <tr><td><strong>网络请求</strong></td><td><code>fetch_url</code></td><td>抓取 URL → Markdown</td><td>BeautifulSoup 清洗 HTML</td></tr>
+    <tr><td><strong>文件读取</strong></td><td><code>read_file</code></td><td>读取本地文件</td><td>沙箱目录限制 + 编码安全 (UTF-8/GBK)</td></tr>
+    <tr><td><strong>知识检索</strong></td><td><code>search_knowledge_base</code></td><td>RAG 混合检索</td><td>BM25 + 向量双通道</td></tr>
+    <tr><td><strong>浏览器</strong></td><td><code>browser_use</code></td><td>浏览器自动化</td><td>Playwright 沙箱 + headless 模式</td></tr>
+    <tr><td><strong>网络搜索</strong></td><td><code>tavily_search</code></td><td>实时网络搜索</td><td>Tavily API (需配置 Key)</td></tr>
+  </tbody>
+</table>
+
+<!-- ===== 5.6 主题系统 ===== -->
+<h3 class="reveal">5.6 双色主题系统</h3>
+
+<div class="grid reveal">
+  <div class="card">
+    <h4>亮色主题 (Light)</h4>
+    <p>Bronze 强调色 (<code>#B8860B</code>)，Cream 背景 (<code>#fcfaf7</code>)。温暖典雅，适合日间使用。</p>
+  </div>
+  <div class="card">
+    <h4>暗色主题 (Dark)</h4>
+    <p>Gold 强调色 (<code>#D4AF37</code>)，Charcoal 背景 (<code>#121212</code>)。沉稳大气，适合夜间使用。</p>
+  </div>
+</div>
+
+<p class="reveal">主题通过 CSS 自定义属性（<code>--accent</code>、<code>--bg-surface</code>、<code>--text-primary</code> 等）实现，切换时仅修改 <code>[data-theme]</code> 属性值，零闪烁、零重渲染。字体统一使用 <strong>Space Grotesk</strong>（via Google Fonts）。</p>
+
+<div class="callout reveal">
+  <div class="callout-icon">🎯</div>
+  <div class="callout-body">
+    <p><strong>下一节预告：</strong>Ch 3.2 将详细介绍 FuFan OpenClaw 的安装部署流程、环境配置、功能使用指南以及完整的项目目录结构。</p>
+  </div>
+</div>
+
+<!-- ==================== LIGHTBOX ==================== -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+  <img id="lightbox-img" src="" alt="Preview" />
+</div>
+
+<script>
+  function openLightbox(src) {
+    var lb = document.getElementById('lightbox');
+    var img = document.getElementById('lightbox-img');
+    img.src = src;
+    lb.classList.add('active');
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('active');
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeLightbox();
+  });
+  (function() {
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(function(el) {
+      observer.observe(el);
+    });
+  })();
+</script>
+</body>
+</html>

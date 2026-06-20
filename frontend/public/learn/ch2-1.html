@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #fafafa; color: #333; line-height: 1.8;
+    padding: 2em 2.5em 4em;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1 { font-size: 1.6em; font-weight: 800; margin-bottom: 0.3em; background: linear-gradient(135deg, #B8860B, #D4AF37); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  h1 .sub { display: block; font-size: 0.55em; font-weight: 500; color: #888; -webkit-text-fill-color: #888; margin-top: 0.2em; }
+  h2 { font-size: 1.2em; font-weight: 700; margin: 2em 0 0.6em; color: #333; border-bottom: 2px solid #B8860B; padding-bottom: 0.3em; }
+  h3 { font-size: 1.05em; font-weight: 600; margin: 1.2em 0 0.4em; color: #444; }
+  h4 { font-size: 0.95em; font-weight: 600; margin: 1em 0 0.3em; color: #555; }
+  p { margin: 0.5em 0; color: #555; }
+  strong { color: #333; }
+  a { color: #B8860B; text-decoration: underline; }
+  a:hover { color: #D4AF37; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; background: rgba(184,134,11,0.1); color: #B8860B; }
+  .badge-group { display: flex; gap: 6px; flex-wrap: wrap; margin: 0.5em 0 1.5em; }
+  .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.3em; margin: 0.8em 0; box-shadow: 0 1px 4px rgba(0,0,0,0.04); transition: transform 0.2s, box-shadow 0.2s; }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .card h3, .card h4 { margin-top: 0; }
+  .card-accent { border-left: 3px solid #B8860B; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8em; }
+  @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+  code { background: rgba(184,134,11,0.08); padding: 1px 6px; border-radius: 4px; font-size: 0.88em; color: #B8860B; font-family: "Fira Code", "Cascadia Code", monospace; }
+  pre { background: #1e1e2e; color: #cdd6f4; border-radius: 10px; padding: 1em 1.2em; margin: 0.8em 0; overflow-x: auto; font-size: 0.82em; line-height: 1.6; font-family: "Fira Code", "Cascadia Code", monospace; }
+  pre code { background: none; color: inherit; padding: 0; }
+  ul, ol { padding-left: 1.5em; }
+  li { margin: 0.3em 0; color: #555; }
+  .steps { counter-reset: step; }
+  .step { counter-increment: step; position: relative; padding-left: 3em; margin: 1.2em 0; }
+  .step::before { content: counter(step); position: absolute; left: 0; top: 0; width: 2em; height: 2em; background: linear-gradient(135deg, #B8860B, #D4AF37); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85em; font-weight: 700; box-shadow: 0 2px 8px rgba(184,134,11,0.3); }
+  .highlight { background: linear-gradient(135deg, rgba(184,134,11,0.06), rgba(212,175,55,0.06)); border: 1px solid rgba(184,134,11,0.15); border-radius: 10px; padding: 1em 1.2em; margin: 1em 0; }
+  .highlight strong { color: #B8860B; }
+  .callout { display: flex; gap: 0.8em; padding: 1em; border-radius: 10px; background: #fffbeb; border: 1px solid #fde68a; margin: 1em 0; }
+  .callout-icon { font-size: 1.3em; line-height: 1; }
+  .callout-body { flex: 1; }
+  .callout-body p { margin: 0; color: #92400e; }
+  .compare-table { width: 100%; border-collapse: collapse; margin: 1em 0; font-size: 0.88em; }
+  .compare-table th { background: linear-gradient(135deg, #B8860B, #D4AF37); color: #fff; padding: 0.6em 0.8em; text-align: left; font-weight: 600; }
+  .compare-table td { padding: 0.5em 0.8em; border-bottom: 1px solid #e5e7eb; }
+  .compare-table tr:hover td { background: rgba(184,134,11,0.04); }
+  .icon-card { display: flex; gap: 1em; align-items: flex-start; padding: 1.2em; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; margin: 0.6em 0; transition: transform 0.2s, box-shadow 0.2s; }
+  .icon-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .icon-card .icon { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, rgba(184,134,11,0.1), rgba(212,175,55,0.1)); display: flex; align-items: center; justify-content: center; font-size: 1.2em; flex-shrink: 0; }
+  .icon-card .content { flex: 1; }
+  .icon-card .content h3, .icon-card .content h4 { margin: 0 0 0.2em; font-size: 0.95em; }
+  .icon-card .content p { margin: 0; font-size: 0.88em; }
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, #B8860B, transparent); margin: 2em 0; border: none; }
+  .zoomable { cursor: zoom-in; max-width: 100%; border-radius: 8px; border: 1px solid #e5e7eb; transition: box-shadow 0.2s; display: block; margin: 0.8em auto; }
+  .zoomable:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.12); }
+  .lightbox { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; cursor: zoom-out; }
+  .lightbox.active { display: flex; }
+  .lightbox img { max-width: 92vw; max-height: 92vh; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  .lightbox-close { position: fixed; top: 16px; right: 16px; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.15); color: #fff; border: none; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .lightbox-close:hover { background: rgba(255,255,255,0.3); }
+  .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .video-player { width: 100%; max-width: 100%; border-radius: 10px; margin: 0.5em 0; border: 1px solid #e5e7eb; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .formula-box { text-align: center; padding: 1em; margin: 1em 0; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; }
+  .formula-box .formula { font-size: 1.1em; font-weight: 700; color: #B8860B; font-family: "Georgia", serif; letter-spacing: 0.02em; }
+  .level-tag { display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: 0.78em; font-weight: 700; font-family: "Fira Code", monospace; margin-right: 6px; }
+  .level-1 { background: #dbeafe; color: #1d4ed8; }
+  .level-2 { background: #dcfce7; color: #166534; }
+  .level-3 { background: #fef3c7; color: #92400e; }
+  .file-tree { background: #1e1e2e; color: #cdd6f4; border-radius: 10px; padding: 1em 1.2em; margin: 0.8em 0; overflow-x: auto; font-size: 0.85em; line-height: 1.7; font-family: "Fira Code", monospace; white-space: pre; }
+  .file-tree .folder { color: #89b4fa; font-weight: 600; }
+  .file-tree .file { color: #a6e3a1; }
+  .file-tree .comment { color: #6c7086; font-style: italic; }
+</style>
+</head>
+<body>
+
+<h1>
+  Ch 2. 从零到一开发 Agent Skills 系统
+  <span class="sub">一、Agent Skills 官方范式深度解析</span>
+</h1>
+
+<div class="badge-group">
+  <span class="badge">Anthropic</span>
+  <span class="badge">Agent Skills</span>
+  <span class="badge">SKILL.md</span>
+  <span class="badge">渐进式加载</span>
+  <span class="badge">Skills 生态</span>
+</div>
+
+<!-- ===== 课程信息 ===== -->
+<div class="card reveal" style="text-align: center;">
+  <img class="zoomable" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/00408e89ca2433b6c508b0cc0dd67568.png" onclick="openLightbox(this.src)" alt="课程封面" style="max-width: 80%;">
+</div>
+
+<div class="grid reveal">
+  <div class="card" style="text-align: center;">
+    <h4>课件领取</h4>
+    <img class="zoomable" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/0.png" onclick="openLightbox(this.src)" alt="课件领取二维码" style="max-width: 260px;">
+  </div>
+  <div class="card" style="text-align: center;">
+    <h4>FuFan OpenClaw 项目演示</h4>
+    <video class="video-player" controls preload="metadata">
+      <source src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/df634166ae519e6288e31c7af4e43ac3_raw.mp4" type="video/mp4">
+      您的浏览器不支持视频播放
+    </video>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 1.1 核心定义 ==================== -->
+<h2 class="reveal">1.1 Agent Skills 核心定义：从"Prompt"到"资产包"</h2>
+
+<p class="reveal">要构建一个企业级的 Agent Skills 系统，首先必须理解 Anthropic 官方制定的标准范式。这套范式不仅仅是文件格式的约定，更是一套关于 <strong>"如何将人类专家的隐性知识（Tacit Knowledge）转化为机器可执行的显性资产（Explicit Assets）"</strong> 的工程标准。</p>
+
+<div class="callout reveal">
+  <div class="callout-icon">🔗</div>
+  <div class="callout-body">
+    <p><strong>官方资源：</strong>Agent Skills 官方介绍 — <a href="https://agentskills.io/" target="_blank">agentskills.io</a></p>
+  </div>
+</div>
+
+<img class="zoomable reveal" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211195019852.png" onclick="openLightbox(this.src)" alt="Agent Skills 官方首页" style="max-width: 100%;">
+
+<p class="reveal">在传统的 Agent 开发中，我们习惯于将所有指令都塞进 System Prompt。但在 Agent Skills 范式下，我们引入了 <strong>"技能即文件" (Skill as a File)</strong> 的核心概念。</p>
+
+<p class="reveal">根据 <code>agentskills.io</code> 的定义，<strong>Agent Skill 是一个标准化的文件夹结构，它封装了扩展智能体能力所需的特定领域知识、指令和工具定义。</strong></p>
+
+<img class="zoomable reveal" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211195121712.png" onclick="openLightbox(this.src)" alt="Agent Skill 定义" style="max-width: 100%;">
+
+<p class="reveal">它不再是一段虚无缥缈的提示词，而是一个实实在在的<strong>资产包 (Asset Package)</strong>。一个标准的 Skill 必须包含以下核心要素：</p>
+
+<div class="formula-box reveal">
+  <div class="formula">Skill = Metadata + Instructions (SOP) + Examples + Tools</div>
+</div>
+
+<div class="grid reveal">
+  <div class="icon-card">
+    <div class="icon">🏷️</div>
+    <div class="content">
+      <h4>Metadata (元数据)</h4>
+      <p>用于被系统索引和路由的标签（如名称、描述）。Agent 通过元数据知道"我能做什么"。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">📋</div>
+    <div class="content">
+      <h4>Instructions (指令)</h4>
+      <p>自然语言编写的算法或 SOP（标准作业程序）。这是 Skill 的"灵魂"——告诉 Agent 如何一步步执行。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">📝</div>
+    <div class="content">
+      <h4>Examples (示例)</h4>
+      <p>用于 Few-Shot Learning 的输入输出对，锁定模型行为，防止 Agent 自由发挥偏离预期。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">🔧</div>
+    <div class="content">
+      <h4>Tools (依赖)</h4>
+      <p>该技能运行所需的底层原子能力（如联网、数据库连接）。Skill 编排这些工具完成复杂任务。</p>
+    </div>
+  </div>
+</div>
+
+<div class="highlight reveal">
+  <p>这种结构化的定义，使得 Skill 具备了 <strong>可移植性 (Portability)</strong> 和 <strong>可复用性 (Reusability)</strong>。任何人都可以创建、分享、安装 Skill，就像安装 App 一样简单。</p>
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 1.2 三层渐进式加载 ==================== -->
+<h2 class="reveal">1.2 架构核心：三层渐进式加载机制</h2>
+
+<p class="reveal">Agent Skills 系统设计的最大挑战在于 <strong>Context Window（上下文窗口）</strong>的限制。为了在有限的 Token 预算内实现无限的能力扩展，Anthropic 提出了一套 <strong>"渐进式披露" (Progressive Disclosure)</strong> 的加载机制。</p>
+
+<img class="zoomable reveal" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211195217408.png" onclick="openLightbox(this.src)" alt="三层渐进式加载机制" style="max-width: 100%;">
+
+<p class="reveal">这套机制将 Skill 的生命周期划分为三个层级：</p>
+
+<!-- Level 1 -->
+<div class="card card-accent reveal">
+  <h4><span class="level-tag level-1">Level 1</span> 索引层 (Index Layer) — System Init</h4>
+  <ul>
+    <li><strong>加载内容</strong>：仅加载 Skill 的 <strong>元数据 (Metadata)</strong>，通常只有 <code>name</code> 和 <code>description</code></li>
+    <li><strong>位置</strong>：常驻于 System Prompt</li>
+    <li><strong>作用</strong>：建立 <strong>"能力目录"</strong>。此时 Agent 知道自己"能做什么"（比如"能查天气"），但完全不知道"具体怎么做"</li>
+    <li><strong>Token 消耗</strong>：极低（每个 Skill 约消耗 20-50 Tokens）</li>
+  </ul>
+</div>
+
+<!-- Level 2 -->
+<div class="card card-accent reveal">
+  <h4><span class="level-tag level-2">Level 2</span> 指令层 (Instruction Layer) — On Demand</h4>
+  <ul>
+    <li><strong>加载内容</strong>：<code>SKILL.md</code> 的完整正文（包含 SOP 和 Examples）</li>
+    <li><strong>触发机制</strong>：当 Agent 的意图识别（Router）命中某个 Metadata 时，系统触发 <strong>Function Calling (<code>read_file</code>)</strong></li>
+    <li><strong>位置</strong>：动态注入到 Current Context（当前对话上下文）</li>
+    <li><strong>作用</strong>：<strong>JIT (Just-in-Time) 知识注入</strong>。Agent 在这一刻才真正"学会"了该技能的业务逻辑</li>
+  </ul>
+</div>
+
+<!-- Level 3 -->
+<div class="card card-accent reveal">
+  <h4><span class="level-tag level-3">Level 3</span> 执行层 (Runtime Layer) — Execution</h4>
+  <ul>
+    <li><strong>加载内容</strong>：具体的原子工具调用（Function Arguments）和外部资源</li>
+    <li><strong>触发机制</strong>：Agent 阅读指令层后，根据 SOP 发起具体的 Tool Calls</li>
+    <li><strong>作用</strong>：<strong>物理执行</strong>。调用 API、运行 Python 脚本或查询数据库，获取最终结果</li>
+  </ul>
+</div>
+
+<div class="callout reveal">
+  <div class="callout-icon">💡</div>
+  <div class="callout-body">
+    <p><strong>设计精髓：</strong>这套三层机制的核心思想是 <strong>"按需加载"</strong>。不是把所有技能的详细内容一股脑塞进上下文，而是在需要时才加载，极大地节约了 Token 预算，使得 Agent 可以挂载成百上千个技能而不爆 Context Window。</p>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 1.3 SKILL.md 解剖学 ==================== -->
+<h2 class="reveal">1.3 标准协议详解：SKILL.md 解剖学</h2>
+
+<p class="reveal">在 Agent Skills 范式中，<code>SKILL.md</code> 是承载业务逻辑的核心载体。它采用 <strong>Markdown + YAML Frontmatter</strong> 的混合格式。一个符合规范的 <code>SKILL.md</code> 必须包含以下结构：</p>
+
+<pre class="reveal"><code>---
+name: skill_name_id  # [必填] 技能唯一标识符，建议使用 snake_case
+description: A concise description of what this skill does. # [必填] 用于路由匹配的关键语义信息
+version: 1.0.0 # [选填] 版本控制
+---
+
+# [技能名称]
+
+## Usage (使用场景)
+明确描述在什么情况下应该激活此技能。
+这有助于模型进行自我反思和意图确认。
+
+## Steps (执行步骤)
+这是 Skill 的灵魂。使用自然语言编写的算法逻辑（SOP）。
+1. 第一步做什么...
+2. 第二步调用哪个工具...
+3. 第三步如何处理数据...
+
+## Examples (示例)
+User: [用户输入]
+Assistant: [期望的思考过程和工具调用]
+System: [工具返回结果]
+Assistant: [最终回复]
+
+## Considerations (注意事项)
+边界条件处理、错误重试机制或安全合规要求。</code></pre>
+
+<div class="grid reveal">
+  <div class="card">
+    <h4>YAML Frontmatter</h4>
+    <p>文件顶部的 <code>---</code> 包裹区域。<code>name</code> 用于唯一标识，<code>description</code> 用于 Agent 路由匹配——这是 Level 1 索引层的数据来源。</p>
+  </div>
+  <div class="card">
+    <h4>Markdown 正文</h4>
+    <p>YAML 下方的正文区域。包含 Usage（何时触发）、Steps（怎么做）、Examples（示例锁定）、Considerations（边界处理）。这是 Level 2 指令层的数据来源。</p>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 1.4 Skill vs Tool vs MCP ==================== -->
+<h2 class="reveal">1.4 关键辨析：Skill vs Tool vs MCP</h2>
+
+<p class="reveal">在系统架构中，必须清晰界定 <strong>Skill (技能)</strong>、<strong>Tool (工具)</strong> 和 <strong>MCP (模型上下文协议)</strong> 的边界：</p>
+
+<table class="compare-table reveal">
+  <thead>
+    <tr><th>概念</th><th>定义</th><th>形象比喻</th><th>职责</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Skill</strong></td>
+      <td><strong>业务逻辑封装</strong> (SOP)</td>
+      <td>菜谱</td>
+      <td>告诉 Agent "先切菜，再热油，最后炒"。它不直接操作物理世界，而是编排工具的使用顺序。</td>
+    </tr>
+    <tr>
+      <td><strong>Tool</strong></td>
+      <td><strong>原子能力接口</strong> (API)</td>
+      <td>菜刀 / 炒锅</td>
+      <td>执行具体的物理动作（如 <code>fetch_url</code>, <code>execute_sql</code>）。它没有业务逻辑，只有功能。</td>
+    </tr>
+    <tr>
+      <td><strong>MCP</strong></td>
+      <td><strong>连接标准协议</strong></td>
+      <td>厨房接口标准</td>
+      <td>规定了"菜刀"如何连接到"手臂"上。它解决了连接问题，但不解决"怎么做菜"的问题。</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="highlight reveal">
+  <p><strong>结论：</strong>Agent Skills 是位于 MCP 和 Tool 之上的 <strong>应用层 (Application Layer)</strong>。它通过编排底层的原子工具（Tool），利用标准的连接协议（MCP），来实现复杂的业务目标。</p>
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 1.5 get_weather 示例 ==================== -->
+<h2 class="reveal">1.5 基础示例：get_weather 技能</h2>
+
+<p class="reveal">为了验证上述理论，我们来分析一个完全符合 Anthropic 标准的最简 Skill 实现——<code>get_weather</code> 天气查询技能。</p>
+
+<h3 class="reveal">文件结构验证</h3>
+
+<div class="file-tree reveal"><span class="folder">/skills</span>
+  └── <span class="folder">/get_weather</span>       <span class="comment">&lt;-- Skill 包（文件夹）</span>
+       └── <span class="file">SKILL.md</span>      <span class="comment">&lt;-- 核心定义文件</span></div>
+
+<p class="reveal">符合"技能即文件夹"的定义。下面逐层解析 SKILL.md 的各个部分：</p>
+
+<h3 class="reveal">SKILL.md 逐层解析</h3>
+
+<!-- Metadata -->
+<div class="card card-accent reveal">
+  <h4><span class="level-tag level-1">Level 1</span> Metadata（索引层）</h4>
+<pre><code>name: get_weather
+description: 获取指定城市的实时天气信息</code></pre>
+  <p><strong>解析：</strong>Agent 通过 <code>description</code> 里的语义信息，将用户查询 "北京天气怎么样" 路由到此技能。这两行只消耗约 30 Tokens，常驻于 System Prompt。</p>
+</div>
+
+<!-- Usage -->
+<div class="card card-accent reveal">
+  <h4>Usage（使用场景）</h4>
+  <p style="background: #f9fafb; padding: 0.6em 1em; border-radius: 6px; border-left: 3px solid #d1d5db; font-style: italic; color: #555;">"当用户询问某个城市的天气情况时使用此技能。"</p>
+  <p><strong>解析：</strong>进一步强化触发条件，帮助 Agent 在多个技能中精准匹配。</p>
+</div>
+
+<!-- Steps -->
+<div class="card card-accent reveal">
+  <h4><span class="level-tag level-2">Level 2</span> Steps（指令层 — SOP）</h4>
+  <div class="steps">
+    <div class="step">从用户消息中提取城市名称</div>
+    <div class="step">使用 <code>fetch_url</code> 工具访问 <code>wttr.in/{城市}?format=j1</code></div>
+    <div class="step">解析返回的 JSON 数据，提取温度、天气状况等关键信息</div>
+    <div class="step">用友好的自然语言格式化并回复用户</div>
+  </div>
+  <p><strong>解析：</strong>这是典型的 <strong>Logic Orchestration（逻辑编排）</strong>。它没有写 Python 代码，而是用自然语言指导 Agent 调用 <code>fetch_url</code> 这个原子工具。</p>
+</div>
+
+<!-- Examples -->
+<div class="card card-accent reveal">
+  <h4>Examples（对齐层）</h4>
+  <p style="background: #f9fafb; padding: 0.6em 1em; border-radius: 6px; font-size: 0.9em; color: #555;">用户：「查询北京的天气」 &rarr; Agent 调用 fetch_url &rarr; 解析 JSON &rarr; 回复：「北京当前天气：晴，温度 25°C...」</p>
+  <p><strong>解析：</strong>通过 Few-Shot 样本锁定了 Agent 的输出格式，防止它直接把原始 JSON 扔给用户。</p>
+</div>
+
+<img class="zoomable reveal" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211183005827.png" onclick="openLightbox(this.src)" alt="get_weather 执行效果" style="max-width: 100%;">
+
+<div class="highlight reveal">
+  <p><strong>核心洞察：</strong>Agent Skill 的本质，就是用结构化的自然语言，编写了一段能够被 LLM 及其 Runtime 环境（Agent）所理解和执行的<strong>"软代码"</strong>。</p>
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 1.6 docx 复杂示例 ==================== -->
+<h2 class="reveal">1.6 复杂示例：docx 文档操作技能</h2>
+
+<p class="reveal">在掌握了基础 Skill 后，我们将视线投向更复杂的业务场景。Anthropic 官方仓库中的 <code>skills/docx</code> 是一个教科书般的案例，它展示了 Agent 如何像一个全栈工程师一样，操控 Word 文档的创建、读取、编辑和渲染。</p>
+
+<div class="callout reveal">
+  <div class="callout-icon">🔗</div>
+  <div class="callout-body">
+    <p><strong>项目地址：</strong><a href="https://github.com/anthropics/skills/tree/main/skills/docx" target="_blank">github.com/anthropics/skills/tree/main/skills/docx</a></p>
+  </div>
+</div>
+
+<img class="zoomable reveal" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211201146331.png" onclick="openLightbox(this.src)" alt="docx Skill GitHub 页面" style="max-width: 100%;">
+
+<!-- 1.6.1 技能概览 -->
+<h3 class="reveal">1.6.1 技能概览：不仅是调用，更是"全栈开发"</h3>
+
+<p class="reveal">与 <code>get_weather</code> 的"单一接口调用"不同，<code>docx</code> 技能是一个<strong>重型资产包</strong>。它不仅教 Agent 如何使用工具，还教 Agent 如何<strong>编写代码</strong>来生成文档。</p>
+
+<div class="grid reveal">
+  <div class="card card-accent">
+    <h4>技能目标</h4>
+    <p>创建专业格式的 Word 文档（含表格、目录、页眉）、提取带修订模式的内容、将文档转换为 PDF / 图片。</p>
+  </div>
+  <div class="card card-accent">
+    <h4>复杂度特征</h4>
+    <ul>
+      <li><strong>多语言混合</strong>：同时使用 Python（解包/打包）、Node.js（文档生成）、Bash（工具调用）</li>
+      <li><strong>外部依赖</strong>：集成 Pandoc、LibreOffice、docx-js</li>
+      <li><strong>状态管理</strong>：引入"解压 &rarr; 编辑 XML &rarr; 重打包"的复杂工作流</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 1.6.2 文件结构 -->
+<h3 class="reveal">1.6.2 文件结构解剖</h3>
+
+<img class="zoomable reveal" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211201413719.png" onclick="openLightbox(this.src)" alt="docx 项目结构" style="max-width: 100%;">
+
+<div class="file-tree reveal"><span class="folder">skills/docx/</span>
+├── <span class="file">SKILL.md</span>                <span class="comment"># 核心大脑：SOP 与知识库</span>
+└── <span class="folder">scripts/</span>                <span class="comment"># 肢体动作：原子工具脚本库</span>
+    └── <span class="folder">office/</span>
+        ├── <span class="file">unpack.py</span>       <span class="comment"># 将 .docx 解压为 XML 目录</span>
+        ├── <span class="file">pack.py</span>         <span class="comment"># 将 XML 目录重打包为 .docx</span>
+        ├── <span class="file">validate.py</span>     <span class="comment"># 验证生成的文档</span>
+        └── <span class="file">soffice.py</span>      <span class="comment"># 调用 LibreOffice 转换 PDF</span></div>
+
+<div class="callout reveal">
+  <div class="callout-icon">💡</div>
+  <div class="callout-body">
+    <p><strong>设计洞察 — "厚工具，薄指令"：</strong>为了避免在 System Prompt 中塞入冗长的 Python 代码，开发者将复杂的文件操作封装成独立的 <code>.py</code> 脚本（原子工具），放在 <code>scripts/</code> 目录下。<code>SKILL.md</code> 只需告诉 Agent "运行 <code>unpack.py</code>"，而不需要解释"如何解压 ZIP 文件"。</p>
+  </div>
+</div>
+
+<!-- 1.6.3 SKILL.md 深度解析 -->
+<h3 class="reveal">1.6.3 SKILL.md 深度解析：教 Agent 写代码</h3>
+
+<p class="reveal"><code>docx</code> 的 SKILL.md 最精彩的部分在于，它不仅指挥 Agent 使用工具，还指挥 Agent <strong>"现场写代码"</strong>。</p>
+
+<img class="zoomable reveal" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211201345733.png" onclick="openLightbox(this.src)" alt="docx SKILL.md 内容" style="max-width: 100%;">
+
+<h4 class="reveal">A. 元数据与触发器</h4>
+
+<pre class="reveal"><code>name: docx
+description: Create, read, edit, and manipulate Word documents (.docx).
+  Use when user mentions "Word doc", "report", or needs professional formatting.</code></pre>
+
+<h4 class="reveal">B. 核心指令：双模态工作流 (Dual-Mode Workflow)</h4>
+
+<p class="reveal">SKILL.md 中定义了两套截然不同的 SOP，分别对应"创建"和"编辑"：</p>
+
+<!-- Mode 1: Creation -->
+<div class="card card-accent reveal">
+  <h4>模式一：从零创建 (Creation Mode)</h4>
+  <p><em>Instructions:</em> "To create new documents, write and execute a <strong>Node.js script</strong> using the <code>docx</code> library."</p>
+  <p>Agent 不再是简单地调用 <code>create_doc(text)</code>，而是被要求<strong>编写一段完整的 JavaScript 代码</strong>：</p>
+<pre><code>// Agent 学习这个模板，然后根据用户需求修改
+const doc = new Document({
+  sections: [{
+    children: [
+      new Paragraph({
+        text: "Hello World",
+        heading: HeadingLevel.HEADING_1
+      }),
+      new Table({ ... }) // Agent 需自行构建表格逻辑
+    ]
+  }]
+});
+Packer.toBuffer(doc).then(buffer =>
+  fs.writeFileSync("doc.docx", buffer)
+);</code></pre>
+  <p><strong>技术价值：</strong>这种模式赋予了 Agent 极高的灵活性。它不仅仅是在填表，而是在利用 <code>docx-js</code> 库的强大能力进行<strong>排版编程</strong>。</p>
+</div>
+
+<!-- Mode 2: Surgical Edit -->
+<div class="card card-accent reveal">
+  <h4>模式二：手术刀式编辑 (Surgical Editing Mode)</h4>
+  <p><em>Instructions:</em> "To edit existing documents with precision:"</p>
+  <div class="steps">
+    <div class="step">运行 <code>python scripts/office/unpack.py doc.docx output_dir</code> 将 .docx 解压为原始 XML</div>
+    <div class="step">直接读取并修改 <code>word/document.xml</code> 文件</div>
+    <div class="step">运行 <code>python scripts/office/pack.py output_dir new_doc.docx</code> 重新打包</div>
+  </div>
+  <p><strong>技术价值：</strong>这是非常硬核的操作。<code>.docx</code> 本质上是 XML 的压缩包。这个 Skill 教会了 Agent <strong>"外科手术"</strong>般的编辑能力——直接修改底层 XML，从而实现许多 API 无法做到的精细修改（如保留修订痕迹、修改特定样式）。</p>
+</div>
+
+<!-- SKILL.md 中的关键规则 -->
+<h4 class="reveal">C. SKILL.md 中的关键规则</h4>
+
+<p class="reveal">docx 的 SKILL.md 还包含了大量 <code>docx-js</code> 库的使用规范（快速参考表、页面尺寸、样式覆盖、表格宽度计算、图片插入、分页符等），以及编辑 XML 时的模式兼容性要求。以下是其中的核心规则摘要：</p>
+
+<div class="card reveal" style="font-size: 0.9em;">
+  <ul>
+    <li><strong>显式设置页面大小</strong> — docx-js 默认是 A4；对于美国文档，须使用 US Letter（12240 x 15840 DXA）</li>
+    <li><strong>永远不要使用 <code>\n</code></strong> — 使用单独的 Paragraph 元素</li>
+    <li><strong>永远不要使用 Unicode 项符号</strong> — 使用 <code>LevelFormat.BULLET</code> 和编号配置</li>
+    <li><strong>分页符必须在 Paragraph 内</strong> — 单独使用会创建无效 XML</li>
+    <li><strong>ImageRun 必须指定 <code>type</code></strong> — 始终指定 png/jpg 等格式</li>
+    <li><strong>表格需要双重宽度</strong> — <code>columnWidths</code> 和单元格 <code>width</code> 必须匹配</li>
+    <li><strong>始终使用 <code>WidthType.DXA</code></strong> — 永远不用 <code>PERCENTAGE</code>（Google Docs 不兼容）</li>
+    <li><strong>使用 <code>ShadingType.CLEAR</code></strong> — 永远不用 SOLID 作为表格阴影</li>
+    <li><strong>覆盖内置样式</strong> — 使用准确的 ID：<code>"Heading1"</code>、<code>"Heading2"</code> 等</li>
+  </ul>
+</div>
+
+<!-- 1.6.4 原子能力层 -->
+<h3 class="reveal">1.6.4 原子能力层 (Atomic Tools)</h3>
+
+<p class="reveal">为了支撑上述逻辑，Skill 挂载了几个关键的"硬原子"：</p>
+
+<div class="reveal">
+  <div class="icon-card">
+    <div class="icon">📄</div>
+    <div class="content">
+      <h4>Pandoc — 内容阅读</h4>
+      <p>Agent 并非自己读二进制文件，而是调用 <code>pandoc -t markdown doc.docx</code> 将 Word 文档转译为 Markdown 文本，方便自己理解。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">📦</div>
+    <div class="content">
+      <h4>Unpack/Pack 脚本 — 状态转换</h4>
+      <p>将封闭的 <code>.docx</code> 转换为开放的文件夹结构（XML 文件），使 Agent 可以直接编辑底层内容。编辑后再打包回去。</p>
+    </div>
+  </div>
+  <div class="icon-card">
+    <div class="icon">🖨️</div>
+    <div class="content">
+      <h4>LibreOffice (Headless) — 文档渲染</h4>
+      <p>当用户需要 PDF 时，Agent 调用 <code>soffice.py</code> 在后台启动无界面的 LibreOffice 进行转换。</p>
+    </div>
+  </div>
+</div>
+
+<!-- 1.6.5 总结 -->
+<h3 class="reveal">1.6.5 总结：复杂 Skill 的系统论</h3>
+
+<div class="grid reveal">
+  <div class="card card-accent">
+    <h4>代码生成 > 工具调用</h4>
+    <p>对于复杂任务，直接让 Agent 编写并运行临时脚本（如 JS 生成文档），比预定义一千个 API 函数要灵活得多。</p>
+  </div>
+  <div class="card card-accent">
+    <h4>工具链编排</h4>
+    <p>Agent 成为了一个指挥官，它指挥 Pandoc 读、Node.js 写、Python 改、LibreOffice 转，形成了一条完整的自动化流水线。</p>
+  </div>
+  <div class="card card-accent">
+    <h4>知识封装</h4>
+    <p>关于"如何操作 XML"和"如何使用 docx-js 库"的知识，全部封装在 <code>SKILL.md</code> 中，不需要 Agent 预训练时死记硬背。</p>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ==================== 1.7 热门社区 ==================== -->
+<h2 class="reveal">1.7 热门 Agent Skills 集成网站与开源社区</h2>
+
+<p class="reveal">在 Agent Skills 范式下，我们不需要从零编写每一个功能。目前全球开发者已经贡献了海量的 Skill 资产，我们可以像下载 App 一样直接集成这些能力。以下是目前最热门的三个资源获取渠道：</p>
+
+<!-- Anthropic Official -->
+<div class="card card-accent reveal">
+  <h4>1. Anthropic Official Skills（官方标准库）</h4>
+  <p><strong>网址：</strong><a href="https://github.com/anthropics/skills" target="_blank">github.com/anthropics/skills</a></p>
+  <ul>
+    <li><strong>官方出品</strong>：Anthropic 维护的官方仓库，代表了 Skill 开发的"最高标准"和"最佳实践"</li>
+    <li><strong>覆盖面广</strong>：涵盖从创意生成（Art/Music）、技术开发（Coding/Testing）到企业工作流（Branding/Comms）的全场景示例</li>
+    <li><strong>教学价值</strong>：每一个 Skill 都是教科书级的 <code>SKILL.md</code> 编写范例，非常适合新手模仿学习</li>
+  </ul>
+  <img class="zoomable" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211201954114.png" onclick="openLightbox(this.src)" alt="Anthropic Official Skills" style="max-width: 100%; margin-top: 0.8em;">
+</div>
+
+<!-- ClawHub -->
+<div class="card card-accent reveal">
+  <h4>2. ClawHub（OpenClaw 技能中心）</h4>
+  <p><strong>网址：</strong><a href="https://clawhub.ai" target="_blank">clawhub.ai</a></p>
+  <ul>
+    <li><strong>Agent 界的"App Store"</strong>：专为 OpenClaw 生态设计的技能市场，拥有超过 50,000+ 个现成 Skill</li>
+    <li><strong>一键安装</strong>：支持通过命令行 <code>claw install &lt;skill-name&gt;</code> 直接将能力注入到 Agent 中</li>
+    <li><strong>社区驱动</strong>：拥有最活跃的第三方开发者生态，大量非官方的"黑科技"Skill 首发于此</li>
+  </ul>
+  <img class="zoomable" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211202017112.png" onclick="openLightbox(this.src)" alt="ClawHub 技能中心" style="max-width: 100%; margin-top: 0.8em;">
+</div>
+
+<!-- Awesome Agent Skills -->
+<div class="card card-accent reveal">
+  <h4>3. Awesome Agent Skills（社区精选集）</h4>
+  <p><strong>网址：</strong><a href="https://github.com/VoltAgent/awesome-agent-skills" target="_blank">github.com/VoltAgent/awesome-agent-skills</a></p>
+  <ul>
+    <li><strong>跨平台兼容</strong>：Skills 不仅适配 Claude，还兼容 Codex、Gemini CLI 等多种主流 Agent 运行时</li>
+    <li><strong>大厂集成</strong>：收录了来自 Vercel, Stripe, Cloudflare 等知名技术团队发布的官方 Skill</li>
+    <li><strong>数量庞大</strong>：目前已收录超过 300+ 高质量 Skill，是寻找灵感和"现成轮子"的宝库</li>
+  </ul>
+  <img class="zoomable" src="https://ml2022.oss-cn-hangzhou.aliyuncs.com/img/image-20260211202045318.png" onclick="openLightbox(this.src)" alt="Awesome Agent Skills" style="max-width: 100%; margin-top: 0.8em;">
+</div>
+
+<hr class="divider">
+
+<div class="callout reveal">
+  <div class="callout-icon">🎯</div>
+  <div class="callout-body">
+    <p><strong>下一节预告：</strong>Ch 2.2 将进入实战环节，使用 LangChain 1.x 从零构建一个支持 Agent Skills 的最小可行系统（MVP），包括核心工具层、技能引导层和 Agent 运行时的完整代码实现。</p>
+  </div>
+</div>
+
+<!-- ==================== LIGHTBOX ==================== -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+  <img id="lightbox-img" src="" alt="Preview" />
+</div>
+
+<script>
+  function openLightbox(src) {
+    var lb = document.getElementById('lightbox');
+    var img = document.getElementById('lightbox-img');
+    img.src = src;
+    lb.classList.add('active');
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('active');
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeLightbox();
+  });
+  (function() {
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(function(el) {
+      observer.observe(el);
+    });
+  })();
+</script>
+</body>
+</html>

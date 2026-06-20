@@ -1,0 +1,246 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import {
+  X, RefreshCw, Database, Loader2, Wrench, ChevronDown, ChevronRight, Terminal,
+} from "lucide-react";
+import { useApp } from "@/lib/store";
+import { getSessionTokenCount } from "@/lib/api";
+import ConfirmDialog from "@/components/shared/ConfirmDialog";
+
+interface Props {
+  onClose: () => void;
+}
+
+export default function RawMessagesPanel({ onClose }: Props) {
+  const {
+    sessionId,
+    rawMessages,
+    loadRawMessages,
+    isCompressing,
+    compressCurrentSession,
+    ragMode,
+    toggleRagMode,
+  } = useApp();
+
+  const [sessionTokens, setSessionTokens] = useState<number | null>(null);
+  const [showCompressConfirm, setShowCompressConfirm] = useState(false);
+
+  useEffect(() => {
+    loadRawMessages();
+    getSessionTokenCount(sessionId)
+      .then((data) => setSessionTokens(data.total_tokens))
+      .catch(() => setSessionTokens(null));
+  }, [sessionId, loadRawMessages]);
+
+  const handleRefresh = () => {
+    loadRawMessages();
+    getSessionTokenCount(sessionId)
+      .then((data) => setSessionTokens(data.total_tokens))
+      .catch(() => {});
+  };
+
+  return (
+    <div className="flex flex-col h-full" style={{ background: "var(--bg-surface)" }}>
+      {/* Header */}
+      <div className="h-14 flex items-center justify-between px-4 shrink-0" style={{ borderBottom: "1px solid var(--border)" }}>
+        <div className="flex items-center gap-2">
+          <span className="text-[14px] font-semibold" style={{ color: "var(--text-primary)" }}>
+            Raw Context
+          </span>
+          {sessionTokens !== null && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "var(--accent-bg)", color: "var(--accent)" }}>
+              ~{sessionTokens.toLocaleString()} tokens
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-1">
+          {/* RAG toggle */}
+          <button
+            onClick={toggleRagMode}
+            className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-colors ${
+              ragMode ? "text-white" : ""
+            }`}
+            style={ragMode ? { background: "var(--accent)" } : { color: "var(--text-muted)" }}
+            title={ragMode ? "RAG Mode ON" : "RAG Mode OFF"}
+          >
+            <Database className="w-3.5 h-3.5" />
+            RAG
+          </button>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-md transition-colors hover:opacity-80"
+            style={{ color: "var(--text-muted)" }}
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Messages area */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        {!rawMessages ? (
+          <div className="flex items-center justify-center h-32">
+            <Loader2 className="w-5 h-5 animate-spin" style={{ color: "var(--text-muted)" }} />
+          </div>
+        ) : rawMessages.length === 0 ? (
+          <div className="flex items-center justify-center h-32 text-[12px]" style={{ color: "var(--text-muted)" }}>
+            暂无消息
+          </div>
+        ) : (
+          rawMessages.map((msg, i) => (
+            <RawMessageItem key={i} msg={msg} />
+          ))
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="shrink-0 flex items-center justify-between px-4 py-3" style={{ borderTop: "1px solid var(--border)" }}>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowCompressConfirm(true)}
+            disabled={isCompressing}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-colors disabled:opacity-40"
+            style={{ border: "1px solid var(--border)", color: "var(--text-secondary)" }}
+          >
+            {isCompressing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wrench className="w-3 h-3" />}
+            Compress
+          </button>
+          <button
+            onClick={handleRefresh}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-colors"
+            style={{ border: "1px solid var(--border)", color: "var(--text-secondary)" }}
+          >
+            <RefreshCw className="w-3 h-3" />
+            Refresh
+          </button>
+        </div>
+        <span className="text-[10px] font-mono" style={{ color: "var(--text-muted)" }}>
+          {rawMessages ? `${rawMessages.length} messages` : ""}
+        </span>
+      </div>
+
+      {/* Compress confirmation */}
+      {showCompressConfirm && (
+        <ConfirmDialog
+          title="压缩对话历史"
+          message="确定要压缩 50% 的对话历史吗？被压缩的消息将被归档，替换为一段摘要。"
+          confirmText="确认压缩"
+          danger={false}
+          onConfirm={async () => {
+            setShowCompressConfirm(false);
+            await compressCurrentSession();
+            getSessionTokenCount(sessionId)
+              .then((data) => setSessionTokens(data.total_tokens))
+              .catch(() => {});
+          }}
+          onCancel={() => setShowCompressConfirm(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Single raw message with optional tool calls display */
+function RawMessageItem({ msg }: { msg: { role: string; content: string; tool_calls?: Array<{ tool: string; input?: string; output?: string }> } }) {
+  const [expanded, setExpanded] = useState(false);
+  const roleColor = msg.role === "system" ? "var(--text-muted)" : msg.role === "user" ? "#3b82f6" : "var(--accent)";
+  const hasToolCalls = msg.tool_calls && msg.tool_calls.length > 0;
+  const isLong = msg.content.length > 500;
+
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-1">
+        <span
+          className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded"
+          style={{ color: roleColor, background: "var(--accent-bg)" }}
+        >
+          {msg.role}
+        </span>
+        {hasToolCalls && (
+          <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: "var(--accent-bg)", color: "var(--accent)" }}>
+            {msg.tool_calls!.length} tool call{msg.tool_calls!.length > 1 ? "s" : ""}
+          </span>
+        )}
+      </div>
+
+      {/* Message content */}
+      <div
+        className="raw-message-viewer"
+        style={msg.role === "assistant" ? { borderLeft: `2px solid ${roleColor}`, paddingLeft: 8 } : {}}
+      >
+        <div className="msg-content !max-h-[200px]">
+          {isLong && !expanded
+            ? msg.content.slice(0, 500) + "\n...[truncated]"
+            : msg.content}
+        </div>
+        {isLong && (
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="text-[10px] mt-1 flex items-center gap-0.5 transition-colors hover:opacity-80"
+            style={{ color: "var(--accent)" }}
+          >
+            {expanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+            {expanded ? "收起" : "展开全部"}
+          </button>
+        )}
+      </div>
+
+      {/* Tool calls */}
+      {hasToolCalls && (
+        <div className="mt-2 space-y-1.5 ml-2.5">
+          {msg.tool_calls!.map((tc, j) => (
+            <ToolCallItem key={j} tc={tc} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Collapsible tool call display */
+function ToolCallItem({ tc }: { tc: { tool: string; input?: string; output?: string } }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div
+      className="rounded-lg text-[11px] overflow-hidden"
+      style={{ border: "1px solid var(--border)", background: "var(--bg-page)" }}
+    >
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center gap-2 px-3 py-1.5 text-left transition-colors hover:opacity-80"
+      >
+        <Terminal className="w-3 h-3 shrink-0" style={{ color: "var(--accent)" }} />
+        <span className="font-mono font-medium truncate" style={{ color: "var(--text-primary)" }}>
+          {tc.tool}
+        </span>
+        {open ? (
+          <ChevronDown className="w-3 h-3 ml-auto shrink-0" style={{ color: "var(--text-muted)" }} />
+        ) : (
+          <ChevronRight className="w-3 h-3 ml-auto shrink-0" style={{ color: "var(--text-muted)" }} />
+        )}
+      </button>
+      {open && (
+        <div className="px-3 pb-2 space-y-1.5" style={{ borderTop: "1px solid var(--border)" }}>
+          {tc.input && (
+            <div>
+              <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Input</span>
+              <pre className="mt-0.5 text-[10px] font-mono whitespace-pre-wrap p-2 rounded" style={{ background: "var(--accent-bg)", color: "var(--text-secondary)" }}>
+                {tc.input.length > 1000 ? tc.input.slice(0, 1000) + "\n...[truncated]" : tc.input}
+              </pre>
+            </div>
+          )}
+          {tc.output && (
+            <div>
+              <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Output</span>
+              <pre className="mt-0.5 text-[10px] font-mono whitespace-pre-wrap p-2 rounded" style={{ background: "var(--accent-bg)", color: "var(--text-secondary)" }}>
+                {tc.output.length > 1000 ? tc.output.slice(0, 1000) + "\n...[truncated]" : tc.output}
+              </pre>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
