@@ -30,7 +30,7 @@ async def set_rag_mode_endpoint(request: RagModeRequest):
 
 # ── API Key management ────────────────────────────────
 
-MANAGED_KEYS = ["DEEPSEEK_API_KEY", "OPENAI_API_KEY", "OPENAI_BASE_URL", "TAVILY_API_KEY"]
+MANAGED_KEYS = ["DEEPSEEK_API_KEY", "OPENAI_API_KEY", "OPENAI_BASE_URL", "TAVILY_API_KEY", "AMAP_API_KEY"]
 ENV_PATH = Path(__file__).resolve().parent.parent / ".env"
 
 
