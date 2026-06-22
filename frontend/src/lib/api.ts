@@ -13,24 +13,18 @@ export interface SSEEvent {
   data: Record<string, unknown>;
 }
 
+export interface RecommendStreamOptions {
+  /** Top-K feed size; defaults to backend scoring pipeline config. */
+  k?: number;
+}
+
 /**
- * Stream chat messages via POST SSE.
- * Yields parsed SSE events as they arrive.
+ * Parse SSE frames from a POST response body.
+ * Shared by chat and recommend streaming endpoints.
  */
-export async function* streamChat(
-  message: string,
-  sessionId: string
+async function* parseSSEStream(
+  response: Response
 ): AsyncGenerator<SSEEvent> {
-  const response = await fetch(`${API_BASE}/chat`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, session_id: sessionId, stream: true }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Chat API error: ${response.status}`);
-  }
-
   const reader = response.body?.getReader();
   if (!reader) throw new Error("No response body");
 
@@ -67,6 +61,58 @@ export async function* streamChat(
       }
     }
   }
+}
+
+/**
+ * Stream chat messages via POST SSE.
+ * Yields parsed SSE events as they arrive.
+ */
+export async function* streamChat(
+  message: string,
+  sessionId: string
+): AsyncGenerator<SSEEvent> {
+  const response = await fetch(`${API_BASE}/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message, session_id: sessionId, stream: true }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Chat API error: ${response.status}`);
+  }
+
+  yield* parseSSEStream(response);
+}
+
+/**
+ * Stream one IRF recommendation round via POST SSE.
+ * Events: intent, tool_start/tool_end, feed, token, error, done.
+ */
+export async function* streamRecommend(
+  command: string,
+  sessionId: string,
+  options?: RecommendStreamOptions
+): AsyncGenerator<SSEEvent> {
+  const body: Record<string, unknown> = {
+    command,
+    session_id: sessionId,
+    stream: true,
+  };
+  if (options?.k != null) {
+    body.k = options.k;
+  }
+
+  const response = await fetch(`${API_BASE}/recommend`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Recommend API error: ${response.status}`);
+  }
+
+  yield* parseSSEStream(response);
 }
 
 /**

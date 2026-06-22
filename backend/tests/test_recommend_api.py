@@ -32,6 +32,27 @@ def test_feed_event_passthrough() -> None:
     print("feed passthrough OK")
 
 
+def test_recommend_request_accepts_frontend_stream_body() -> None:
+    """Matches frontend streamRecommend() POST JSON shape."""
+    req = RecommendRequest(
+        command="上海周末文艺一点，别去商场",
+        session_id="default",
+        stream=True,
+        k=3,
+    )
+    assert req.command == "上海周末文艺一点，别去商场"
+    assert req.session_id == "default"
+    assert req.stream is True
+    assert req.k == 3
+    print("frontend stream body OK")
+
+
+def test_recommend_request_k_optional() -> None:
+    req = RecommendRequest(command="徐汇区附近", session_id="s1", stream=True)
+    assert req.k is None
+    print("optional k OK")
+
+
 def test_recommend_request_rejects_empty_command() -> None:
     try:
         RecommendRequest(command="   ")
@@ -73,6 +94,8 @@ def test_error_event_passthrough() -> None:
 if __name__ == "__main__":
     test_stage_maps_to_tool_start_end()
     test_feed_event_passthrough()
+    test_recommend_request_accepts_frontend_stream_body()
+    test_recommend_request_k_optional()
     test_recommend_request_rejects_empty_command()
     test_recommend_request_rejects_long_command()
     test_error_event_passthrough()

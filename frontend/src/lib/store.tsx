@@ -10,6 +10,7 @@ import React, {
 } from "react";
 import {
   streamChat,
+  streamRecommend,
   listSessions as apiListSessions,
   createSession as apiCreateSession,
   renameSession as apiRenameSession,
@@ -20,6 +21,17 @@ import {
   getRagMode as apiGetRagMode,
   setRagMode as apiSetRagMode,
 } from "./api";
+import type {
+  PreferenceProfile,
+  RecommendErrorPayload,
+  RecommendFeedPayload,
+} from "./recommend-types";
+import {
+  isRecommendErrorPayload,
+  isRecommendFeedPayload,
+} from "./recommend-types";
+
+const RECOMMEND_MODE_STORAGE_KEY = "openclaw-recommend-mode";
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -96,6 +108,24 @@ interface AppState {
   setCanvasCode: (code: string) => void;
   setCanvasReady: (ready: boolean) => void;
   resetCanvas: () => void;
+
+  // Recommend / IRF
+  recommendMode: boolean;
+  setRecommendMode: (enabled: boolean) => void;
+  toggleRecommendMode: () => void;
+  currentFeed: RecommendFeedPayload | null;
+  feedHistory: RecommendFeedPayload[];
+  round: number;
+  preference: PreferenceProfile | null;
+  intentSummary: string;
+  needsClarification: boolean;
+  isRecommending: boolean;
+  recommendToolCalls: ToolCall[];
+  recommendRationale: string;
+  lastRecommendError: RecommendErrorPayload | null;
+  lastRecommendCommand: string;
+  sendRecommendCommand: (text: string, options?: { k?: number }) => Promise<void>;
+  resetRecommendState: () => void;
 }
 
 const AppContext = createContext<AppState | null>(null);
@@ -115,6 +145,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const canvasBufferRef = useRef("");
   const inCanvasRef = useRef(false);
   const abortRef = useRef(false);
+  const recommendAbortRef = useRef(false);
+
+  // IRF recommendation state
+  const [recommendMode, setRecommendModeState] = useState(false);
+  const [currentFeed, setCurrentFeed] = useState<RecommendFeedPayload | null>(null);
+  const [feedHistory, setFeedHistory] = useState<RecommendFeedPayload[]>([]);
+  const [round, setRound] = useState(0);
+  const [preference, setPreference] = useState<PreferenceProfile | null>(null);
+  const [intentSummary, setIntentSummary] = useState("");
+  const [needsClarification, setNeedsClarification] = useState(false);
+  const [isRecommending, setIsRecommending] = useState(false);
+  const [recommendToolCalls, setRecommendToolCalls] = useState<ToolCall[]>([]);
+  const [recommendRationale, setRecommendRationale] = useState("");
+  const [lastRecommendError, setLastRecommendError] =
+    useState<RecommendErrorPayload | null>(null);
+  const [lastRecommendCommand, setLastRecommendCommand] = useState("");
 
   // ── Ghost session management ──────────────────────────
   // A "ghost" is a session created on the backend but not shown in the sidebar.
@@ -131,6 +177,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const resetRecommendState = useCallback(() => {
+    setCurrentFeed(null);
+    setFeedHistory([]);
+    setRound(0);
+    setPreference(null);
+    setIntentSummary("");
+    setNeedsClarification(false);
+    setRecommendRationale("");
+    setRecommendToolCalls([]);
+    setLastRecommendError(null);
+    setLastRecommendCommand("");
+    recommendAbortRef.current = false;
+  }, []);
+
   /** Create a new ghost session: active but invisible in sidebar. */
   const spawnGhost = useCallback(() => {
     apiCreateSession()
@@ -139,9 +199,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setSessionIdRaw(meta.id);
         setMessages([]);
         setRawMessages(null);
+        resetRecommendState();
       })
       .catch(() => {});
-  }, []);
+  }, [resetRecommendState]);
 
   const resetCanvas = useCallback(() => {
     setCanvasCode("");
@@ -151,11 +212,36 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     inCanvasRef.current = false;
   }, []);
 
+  const setRecommendMode = useCallback((enabled: boolean) => {
+    setRecommendModeState(enabled);
+    try {
+      localStorage.setItem(RECOMMEND_MODE_STORAGE_KEY, String(enabled));
+    } catch {
+      // ignore storage errors (private mode, etc.)
+    }
+  }, []);
+
+  const toggleRecommendMode = useCallback(() => {
+    setRecommendMode(!recommendMode);
+  }, [recommendMode, setRecommendMode]);
+
   // Load RAG mode on mount
   useEffect(() => {
     apiGetRagMode()
       .then((data) => setRagMode(data.rag_mode))
       .catch(() => {});
+  }, []);
+
+  // Restore recommend mode from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(RECOMMEND_MODE_STORAGE_KEY);
+      if (stored === "true") {
+        setRecommendModeState(true);
+      }
+    } catch {
+      // ignore
+    }
   }, []);
 
   const toggleSidebar = useCallback(() => setSidebarOpen((v) => !v), []);
@@ -213,6 +299,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setSessionIdRaw(id);
       setMessages([]);
       setRawMessages(null);
+      resetRecommendState();
 
       apiGetSessionHistory(id)
         .then((data) => {
@@ -265,7 +352,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         })
         .catch(() => {});
     },
-    [cleanupGhost]
+    [cleanupGhost, resetRecommendState]
   );
 
   const createSession = useCallback(async () => {
@@ -588,6 +675,129 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [isStreaming, isCompressing, sessionId, loadSessions, materializeSession]
   );
 
+  // ── Send IRF recommend command ─────────────────────
+
+  const serializeToolPayload = (value: unknown): string | undefined => {
+    if (value == null) return undefined;
+    if (typeof value === "string") return value;
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  };
+
+  const sendRecommendCommand = useCallback(
+    async (text: string, options?: { k?: number }) => {
+      if (!text.trim() || isRecommending || isCompressing) return;
+
+      const command = text.trim();
+      setLastRecommendError(null);
+      setRecommendRationale("");
+      setRecommendToolCalls([]);
+      setLastRecommendCommand(command);
+      setIsRecommending(true);
+      recommendAbortRef.current = false;
+
+      try {
+        for await (const event of streamRecommend(command, sessionId, options)) {
+          if (recommendAbortRef.current) break;
+
+          switch (event.event) {
+            case "intent": {
+              setIntentSummary(String(event.data.intent_summary ?? ""));
+              setNeedsClarification(Boolean(event.data.needs_clarification));
+              break;
+            }
+
+            case "tool_start": {
+              const tool = String(event.data.tool ?? "unknown");
+              setRecommendToolCalls((prev) => [
+                ...prev,
+                {
+                  tool,
+                  input: serializeToolPayload(event.data.input),
+                  status: "running",
+                },
+              ]);
+              break;
+            }
+
+            case "tool_end": {
+              const tool = String(event.data.tool ?? "unknown");
+              setRecommendToolCalls((prev) => {
+                const calls = [...prev];
+                for (let i = calls.length - 1; i >= 0; i--) {
+                  if (calls[i].tool === tool && calls[i].status === "running") {
+                    calls[i] = {
+                      ...calls[i],
+                      output: serializeToolPayload(event.data.output),
+                      status: "done",
+                    };
+                    break;
+                  }
+                }
+                return calls;
+              });
+              break;
+            }
+
+            case "feed": {
+              const feedPayload = event.data;
+              if (isRecommendFeedPayload(feedPayload)) {
+                setCurrentFeed(feedPayload);
+                setRound(feedPayload.round);
+                setPreference(feedPayload.preference);
+                setFeedHistory((prev) => [...prev, feedPayload]);
+              }
+              break;
+            }
+
+            case "token": {
+              const content = String(event.data.content ?? "");
+              if (content) {
+                setRecommendRationale((prev) => prev + content);
+              }
+              break;
+            }
+
+            case "error": {
+              if (isRecommendErrorPayload(event.data)) {
+                setLastRecommendError(event.data);
+              } else {
+                setLastRecommendError({
+                  code: "internal_error",
+                  message: String(event.data.message ?? "Unknown error"),
+                });
+              }
+              break;
+            }
+
+            case "done": {
+              const doneRound = event.data.round;
+              if (typeof doneRound === "number") {
+                setRound(doneRound);
+              }
+              break;
+            }
+
+            default:
+              break;
+          }
+        }
+      } catch (err) {
+        setLastRecommendError({
+          code: "internal_error",
+          message:
+            err instanceof Error ? err.message : "Connection error",
+        });
+      } finally {
+        setIsRecommending(false);
+      }
+    },
+    [isRecommending, isCompressing, sessionId]
+  );
+
   return (
     <AppContext.Provider
       value={{
@@ -616,6 +826,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setCanvasCode,
         setCanvasReady,
         resetCanvas,
+        recommendMode,
+        setRecommendMode,
+        toggleRecommendMode,
+        currentFeed,
+        feedHistory,
+        round,
+        preference,
+        intentSummary,
+        needsClarification,
+        isRecommending,
+        recommendToolCalls,
+        recommendRationale,
+        lastRecommendError,
+        lastRecommendCommand,
+        sendRecommendCommand,
+        resetRecommendState,
       }}
     >
       {children}
