@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{\"components\\\\skills\\\\SkillEditor.tsx -> @monaco-editor/react\":{\"id\":\"components\\\\skills\\\\SkillEditor.tsx -> @monaco-editor/react\",\"files\":[\"static/chunks/_app-pages-browser_node_modules_monaco-editor_react_dist_index_mjs.js\"]}}"
+self.__REACT_LOADABLE_MANIFEST='{"components\\\\memory\\\\MemoryEditor.tsx -> @monaco-editor/react":{"id":2289,"files":["static/chunks/289.4e8898e427a5764e.js"]},"components\\\\skills\\\\SkillEditor.tsx -> @monaco-editor/react":{"id":2289,"files":["static/chunks/289.4e8898e427a5764e.js"]}}';

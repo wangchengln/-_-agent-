@@ -1,0 +1,144 @@
+"use client";
+
+import { ExternalLink, ImageOff, MapPin, Star } from "lucide-react";
+import type { FeedItem, GeoLocation } from "@/lib/recommend-types";
+import { formatFeedDistance } from "@/lib/recommend-types";
+
+interface Props {
+  item: FeedItem;
+  anchor?: GeoLocation | null;
+  dimmed?: boolean;
+}
+
+function formatCost(cost: string | null): string | null {
+  if (!cost) return "免费";
+  const trimmed = cost.trim();
+  if (!trimmed || trimmed === "0" || trimmed === "0.00") return "免费";
+  if (/^\d/.test(trimmed)) return `¥${trimmed.replace(/\.?0+$/, "")}`;
+  return trimmed;
+}
+
+function buildMapSearchUrl(item: FeedItem, anchor?: GeoLocation | null): string {
+  const keyword = [item.name, item.address].filter(Boolean).join(" ");
+  const params = new URLSearchParams({ keyword });
+  if (anchor?.city) params.set("city", anchor.city);
+  if (anchor?.lng != null && anchor?.lat != null) {
+    params.set("center", `${anchor.lng},${anchor.lat}`);
+  }
+  return `https://uri.amap.com/search?${params.toString()}`;
+}
+
+function buildMetaLine(item: FeedItem): string {
+  const parts: string[] = [];
+  if (item.rating != null) parts.push(`${item.rating.toFixed(1)}`);
+  const distance = formatFeedDistance(item.distance_m);
+  if (distance) parts.push(distance);
+  const cost = formatCost(item.cost);
+  if (cost) parts.push(cost);
+  return parts.join(" · ");
+}
+
+export default function RecommendCard({ item, anchor, dimmed }: Props) {
+  const photo = item.photos[0];
+  const meta = buildMetaLine(item);
+  const mapUrl = buildMapSearchUrl(item, anchor);
+
+  return (
+    <article
+      className={`rounded-xl overflow-hidden transition-opacity animate-fade-in-scale ${
+        dimmed ? "opacity-60" : ""
+      }`}
+      style={{
+        background: "var(--bg-surface)",
+        border: "1px solid var(--border)",
+      }}
+    >
+      {/* Cover */}
+      <div className="relative aspect-[16/10] overflow-hidden" style={{ background: "var(--accent-bg)" }}>
+        {photo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={photo}
+            alt={item.name}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+            <ImageOff className="w-8 h-8" style={{ color: "var(--text-muted)", opacity: 0.5 }} />
+            <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+              {item.type.split(";")[0] || "POI"}
+            </span>
+          </div>
+        )}
+        <span
+          className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[11px] font-semibold"
+          style={{ background: "rgba(0,0,0,0.55)", color: "#fff" }}
+        >
+          #{item.rank}
+        </span>
+        {item.score != null && (
+          <span
+            className="absolute top-2 right-2 px-2 py-0.5 rounded-md text-[10px] font-mono"
+            style={{ background: "var(--bg-surface)", color: "var(--accent)" }}
+          >
+            {item.score.toFixed(2)}
+          </span>
+        )}
+      </div>
+
+      {/* Body */}
+      <div className="p-4 space-y-3">
+        <div>
+          <h3 className="text-[15px] font-semibold leading-snug" style={{ color: "var(--text-primary)" }}>
+            {item.name}
+          </h3>
+          <p className="text-[11px] mt-0.5 truncate" style={{ color: "var(--text-muted)" }}>
+            {item.type.replace(/;/g, " · ")}
+          </p>
+        </div>
+
+        {meta && (
+          <div className="flex items-center gap-1.5 text-[12px]" style={{ color: "var(--text-secondary)" }}>
+            {item.rating != null && <Star className="w-3.5 h-3.5 shrink-0" style={{ color: "var(--accent)" }} />}
+            <span>{meta}</span>
+          </div>
+        )}
+
+        {item.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {item.tags.slice(0, 4).map((tag) => (
+              <span
+                key={tag}
+                className="px-2 py-0.5 rounded-full text-[10px]"
+                style={{
+                  background: "var(--accent-bg)",
+                  color: "var(--accent)",
+                  border: "1px solid var(--border-accent)",
+                }}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <p className="text-[12px] leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+          {item.reason}
+        </p>
+
+        <a
+          href={mapUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-[11px] font-medium transition-opacity hover:opacity-80"
+          style={{ color: "var(--accent)" }}
+        >
+          <MapPin className="w-3.5 h-3.5" />
+          在高德地图查看
+          <ExternalLink className="w-3 h-3 opacity-70" />
+        </a>
+      </div>
+    </article>
+  );
+}

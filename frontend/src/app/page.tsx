@@ -5,16 +5,18 @@ import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
 import LearnPanel from "@/components/layout/LearnPanel";
 import ChatPanel from "@/components/chat/ChatPanel";
+import RecommendFeed from "@/components/recommend/RecommendFeed";
+import PreferenceSidebar from "@/components/recommend/PreferenceSidebar";
 import RawMessagesPanel from "@/components/chat/RawMessagesPanel";
 import CanvasPanel from "@/components/chat/CanvasPanel";
 import { useApp } from "@/lib/store";
 
-type RightPanel = "none" | "raw" | "canvas";
+type RightPanel = "none" | "raw" | "canvas" | "preference";
 
 export default function Home() {
   const [rightPanel, setRightPanel] = useState<RightPanel>("none");
   const [learnOpen, setLearnOpen] = useState(false);
-  const { canvasStreaming, sessionId, resetCanvas, sidebarOpen } = useApp();
+  const { canvasStreaming, sessionId, resetCanvas, sidebarOpen, recommendMode } = useApp();
   const wasStreamingRef = useRef(false);
   const prevSessionRef = useRef(sessionId);
 
@@ -29,14 +31,25 @@ export default function Home() {
   // Close canvas + restore canvas when session changes
   useEffect(() => {
     if (sessionId !== prevSessionRef.current) {
-      // Close canvas panel and reset canvas state on session switch
-      if (rightPanel === "canvas") {
+      // Close canvas / preference panel and reset canvas state on session switch
+      if (rightPanel === "canvas" || rightPanel === "preference") {
         setRightPanel("none");
       }
       resetCanvas();
       prevSessionRef.current = sessionId;
     }
   }, [sessionId, rightPanel, resetCanvas]);
+
+  // Close chat-only right panels when entering recommend mode (and vice versa)
+  useEffect(() => {
+    if (recommendMode) {
+      if (rightPanel === "raw" || rightPanel === "canvas") {
+        setRightPanel("none");
+      }
+    } else if (rightPanel === "preference") {
+      setRightPanel("none");
+    }
+  }, [recommendMode, rightPanel]);
 
   return (
     <div className="h-screen flex flex-col" style={{ background: "var(--bg-page)" }}>
@@ -52,10 +65,18 @@ export default function Home() {
           <Sidebar />
         </div>
         <div className="flex-1 overflow-hidden transition-all duration-300">
-          <ChatPanel
-            onOpenRaw={() => setRightPanel((p) => (p === "raw" ? "none" : "raw"))}
-            onOpenCanvas={() => setRightPanel((p) => (p === "canvas" ? "none" : "canvas"))}
-          />
+          {recommendMode ? (
+            <RecommendFeed
+              onOpenPreference={() =>
+                setRightPanel((p) => (p === "preference" ? "none" : "preference"))
+              }
+            />
+          ) : (
+            <ChatPanel
+              onOpenRaw={() => setRightPanel((p) => (p === "raw" ? "none" : "raw"))}
+              onOpenCanvas={() => setRightPanel((p) => (p === "canvas" ? "none" : "canvas"))}
+            />
+          )}
         </div>
         {rightPanel === "raw" && (
           <div
@@ -71,6 +92,14 @@ export default function Home() {
             style={{ borderLeft: "1px solid var(--border)" }}
           >
             <CanvasPanel onClose={() => setRightPanel("none")} />
+          </div>
+        )}
+        {rightPanel === "preference" && (
+          <div
+            className="w-[400px] shrink-0 overflow-hidden animate-slide-in-right"
+            style={{ borderLeft: "1px solid var(--border)" }}
+          >
+            <PreferenceSidebar onClose={() => setRightPanel("none")} />
           </div>
         )}
       </div>

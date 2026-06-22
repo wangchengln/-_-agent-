@@ -1,6 +1,6 @@
 "use client";
 
-import { Sun, Moon, ExternalLink, GraduationCap, PanelLeftOpen } from "lucide-react";
+import { Sun, Moon, GraduationCap, PanelLeftOpen, MessageSquare, MapPin } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 import { useApp } from "@/lib/store";
 
@@ -11,7 +11,12 @@ interface Props {
 
 export default function Header({ onToggleLearnMode, learnModeOpen }: Props) {
   const { theme, setTheme } = useTheme();
-  const { sidebarOpen, toggleSidebar } = useApp();
+  const { sidebarOpen, toggleSidebar, recommendMode, setRecommendMode } = useApp();
+
+  const modeOptions = [
+    { enabled: false, label: "对话", icon: MessageSquare, title: "通用对话模式" },
+    { enabled: true, label: "推荐", icon: MapPin, title: "周末出行 IRF 推荐模式" },
+  ] as const;
 
   return (
     <header className="glass-nav sticky top-0 z-50 h-14 flex items-center px-4 shrink-0">
@@ -43,9 +48,9 @@ export default function Header({ onToggleLearnMode, learnModeOpen }: Props) {
         )}
       </div>
 
-      {/* Center — Logo + 赋范空间 */}
-      <div className="flex-1 flex items-center justify-center gap-4">
-        <div className="flex items-center gap-2.5">
+      {/* Center — Logo + mode switch */}
+      <div className="flex-1 flex items-center justify-center gap-4 min-w-0">
+        <div className="flex items-center gap-2.5 shrink-0">
           <div
             className="w-8 h-8 rounded-xl flex items-center justify-center shadow-sm"
             style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-hover))" }}
@@ -83,6 +88,39 @@ export default function Header({ onToggleLearnMode, learnModeOpen }: Props) {
           <span className="text-[15px] tracking-tight font-bold" style={{ color: "var(--text-primary)" }}>
             Mini OpenClaw
           </span>
+        </div>
+
+        {/* Chat / Recommend mode toggle */}
+        <div
+          className="flex items-center rounded-lg p-0.5 shrink-0"
+          style={{ background: "var(--accent-bg)", border: "1px solid var(--border)" }}
+          role="tablist"
+          aria-label="应用模式"
+        >
+          {modeOptions.map(({ enabled, label, icon: Icon, title }) => {
+            const active = recommendMode === enabled;
+            return (
+              <button
+                key={label}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                title={title}
+                onClick={() => setRecommendMode(enabled)}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${
+                  active ? "shadow-sm" : "opacity-60 hover:opacity-90"
+                }`}
+                style={
+                  active
+                    ? { background: "var(--bg-surface)", color: "var(--accent)" }
+                    : { color: "var(--text-muted)" }
+                }
+              >
+                <Icon className="w-3.5 h-3.5" />
+                {label}
+              </button>
+            );
+          })}
         </div>
 
         {/* <a

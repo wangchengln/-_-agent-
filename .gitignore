@@ -1,7 +1,6 @@
 frontend/node_modules
+frontend/.next
+backend/node_modules
 backend/.env
-Agent评估与优化.ipynb
-大模型AgentSkills设计实战.ipynb
-FuFan-OpenClaw 开发需求文档 (PRD).md
-OpenClaw 第三节课.ipynb
-OpenClaw第二节课.ipynb
+backend/.pytest_cache
+

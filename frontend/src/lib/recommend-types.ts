@@ -125,6 +125,18 @@ export const RECOMMEND_ERROR_CODES: readonly RecommendErrorCode[] = [
   "internal_error",
 ] as const;
 
+/**
+ * Actionable follow-up commands per error code.
+ * Clicking a chip re-sends it as the next IRF command.
+ */
+export const RECOMMEND_ERROR_SUGGESTIONS: Record<RecommendErrorCode, string[]> = {
+  invalid_command: ["上海周末想找个文艺的咖啡馆"],
+  parse_failed: ["上海徐汇区，文艺一点的室外活动", "杭州西湖边适合散步的地方"],
+  anchor_missing: ["上海", "徐汇区附近", "杭州西湖边"],
+  empty_pool: ["距离远一点也行", "换一个区域", "放宽评分要求"],
+  internal_error: [],
+};
+
 /** SSE `error` event payload. */
 export interface RecommendErrorPayload {
   code: RecommendErrorCode;

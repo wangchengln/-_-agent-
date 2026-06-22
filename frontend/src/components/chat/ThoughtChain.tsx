@@ -2,6 +2,7 @@
 
 import {
   Terminal, Code, Globe, FileText, Search, Loader2, CheckCircle2, Wrench,
+  Brain, MapPin, Filter, Sparkles,
 } from "lucide-react";
 import type { ToolCall } from "@/lib/store";
 
@@ -11,6 +12,12 @@ const TOOL_META: Record<string, { icon: React.ElementType; label: string }> = {
   fetch_url:             { icon: Globe,    label: "Fetch URL" },
   read_file:             { icon: FileText, label: "Read File" },
   search_knowledge_base: { icon: Search,   label: "Search KB" },
+  parser:                { icon: Brain,    label: "Parser" },
+  planner:               { icon: MapPin,   label: "Planner" },
+  filter:                { icon: Filter,   label: "Filter" },
+  matcher:               { icon: Sparkles, label: "Matcher" },
+  attenuator:            { icon: Filter,   label: "Attenuator" },
+  aggregator:            { icon: Sparkles, label: "Aggregator" },
 };
 
 interface Props { toolCalls: ToolCall[] }
