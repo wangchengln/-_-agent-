@@ -1,6 +1,12 @@
 """Domain models for the interactive weekend travel recommendation system."""
 
 from domain.feed import RecommendationFeed, ScoreBreakdown, ScoredPOIItem
+from domain.irf_state import (
+    IRFSessionState,
+    MAX_COMMAND_HISTORY,
+    ParserInput,
+    ParserOutput,
+)
 from domain.poi import POIItem, parse_amap_poi, parse_amap_pois
 from domain.preference import (
     NegativeHardConstraints,
@@ -25,4 +31,8 @@ __all__ = [
     "ScoreBreakdown",
     "ScoredPOIItem",
     "RecommendationFeed",
+    "IRFSessionState",
+    "ParserInput",
+    "ParserOutput",
+    "MAX_COMMAND_HISTORY",
 ]

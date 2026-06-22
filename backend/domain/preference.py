@@ -282,3 +282,73 @@ class PreferenceProfile(BaseModel):
         parts.extend(self.negative_hard.exclude_tags)
         parts.extend(self.negative_hard.exclude_categories)
         return " ".join(part.strip() for part in parts if part.strip())
+
+    @staticmethod
+    def _format_list(values: list[str]) -> str | None:
+        cleaned = [value.strip() for value in values if value.strip()]
+        if not cleaned:
+            return None
+        return ",".join(cleaned)
+
+    def to_parser_context(self) -> str:
+        """Compact four-quadrant summary for Parser Agent prompt injection."""
+        lines: list[str] = ["[当前偏好 P_t]"]
+
+        if self.anchor:
+            anchor_parts: list[str] = []
+            if self.anchor.city:
+                anchor_parts.append(self.anchor.city)
+            if self.anchor.address:
+                anchor_parts.append(self.anchor.address)
+            elif self.anchor.lat is not None and self.anchor.lng is not None:
+                anchor_parts.append(f"{self.anchor.lat:.4f},{self.anchor.lng:.4f}")
+            if anchor_parts:
+                lines.append("锚点: " + " · ".join(anchor_parts))
+
+        hard_parts: list[str] = []
+        if self.positive_hard.radius_m is not None:
+            hard_parts.append(f"半径{self.positive_hard.radius_m}m")
+        if categories := self._format_list(self.positive_hard.categories):
+            hard_parts.append(f"类别:{categories}")
+        if self.positive_hard.max_price is not None:
+            hard_parts.append(f"最高人均{self.positive_hard.max_price:g}元")
+        if self.positive_hard.min_rating is not None:
+            hard_parts.append(f"最低评分{self.positive_hard.min_rating:g}")
+        if self.positive_hard.open_now is True:
+            hard_parts.append("营业中")
+        if self.positive_hard.venue_type.value != "any":
+            hard_parts.append(f"场内外:{self.positive_hard.venue_type.value}")
+        if hard_parts:
+            lines.append("正向硬约束: " + " | ".join(hard_parts))
+
+        soft_parts: list[str] = []
+        if tags := self._format_list(self.positive_soft.tags):
+            soft_parts.append(f"标签:{tags}")
+        if keywords := self._format_list(self.positive_soft.keywords):
+            soft_parts.append(f"关键词:{keywords}")
+        if cuisines := self._format_list(self.positive_soft.cuisine_types):
+            soft_parts.append(f"菜系:{cuisines}")
+        if soft_parts:
+            lines.append("正向软偏好: " + " | ".join(soft_parts))
+
+        neg_hard_parts: list[str] = []
+        if excluded := self._format_list(self.negative_hard.exclude_categories):
+            neg_hard_parts.append(f"排除类别:{excluded}")
+        if poi_ids := self._format_list(self.negative_hard.exclude_poi_ids):
+            neg_hard_parts.append(f"排除POI:{poi_ids}")
+        if ex_tags := self._format_list(self.negative_hard.exclude_tags):
+            neg_hard_parts.append(f"排除标签:{ex_tags}")
+        if neg_hard_parts:
+            lines.append("负向硬排除: " + " | ".join(neg_hard_parts))
+
+        neg_soft_parts: list[str] = []
+        if dislike_tags := self._format_list(self.negative_soft.dislike_tags):
+            neg_soft_parts.append(f"不喜标签:{dislike_tags}")
+        if dislike_kw := self._format_list(self.negative_soft.dislike_keywords):
+            neg_soft_parts.append(f"不喜关键词:{dislike_kw}")
+        if neg_soft_parts:
+            lines.append("负向软惩罚: " + " | ".join(neg_soft_parts))
+
+        if len(lines) == 1:
+            lines.append("(空白偏好，用户尚未表达约束)")
+        return "\n".join(lines)

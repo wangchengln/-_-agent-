@@ -5,19 +5,31 @@ import time
 from pathlib import Path
 from typing import Any
 
+from domain.feed import RecommendationFeed
+from domain.irf_state import IRFSessionState, ParserOutput
 from utils.encoding import safe_read_text
 
 
 class SessionManager:
     """Manages conversation history as JSON files in sessions/ directory.
 
-    Storage format (v2):
+    Storage format (v3):
     {
         "title": "会话标题",
         "created_at": 1706000000,
         "updated_at": 1706000100,
-        "messages": [{"role": "user", "content": "..."}, ...]
+        "messages": [{"role": "user", "content": "..."}, ...],
+        "compressed_context": "...",
+        "irf": {
+            "round": 1,
+            "preference": { ... PreferenceProfile ... },
+            "current_feed": { ... RecommendationFeed ... } | null,
+            "command_history": ["..."]
+        }
     }
+
+    v2 sessions without ``irf`` remain readable; IRF state defaults to empty
+    until the first parser/planner write (lazy v2→v3 migration).
     """
 
     def __init__(self) -> None:
@@ -239,6 +251,70 @@ class SessionManager:
         if not data:
             return 0
         return len(data.get("messages", []))
+
+    @staticmethod
+    def _normalize_irf_raw(irf_raw: dict[str, Any] | None) -> dict[str, Any] | None:
+        """Accept legacy ``preference_state`` alias when reading old drafts."""
+        if not irf_raw:
+            return irf_raw
+        if "preference_state" in irf_raw and "preference" not in irf_raw:
+            normalized = dict(irf_raw)
+            normalized["preference"] = normalized.pop("preference_state")
+            return normalized
+        return irf_raw
+
+    def _ensure_session_data(self, session_id: str) -> dict[str, Any]:
+        """Return session dict, creating an empty v3 shell if missing."""
+        data = self._read_file(session_id)
+        if data:
+            return data
+        now = time.time()
+        return {
+            "title": "New Chat",
+            "created_at": now,
+            "updated_at": now,
+            "messages": [],
+        }
+
+    def get_irf_state(self, session_id: str) -> IRFSessionState:
+        """Load IRF machine state for a session (empty if never initialized)."""
+        data = self._read_file(session_id)
+        if not data:
+            return IRFSessionState.empty()
+        irf_raw = self._normalize_irf_raw(data.get("irf"))
+        return IRFSessionState.from_session_dict(irf_raw)
+
+    def save_irf_state(self, session_id: str, state: IRFSessionState) -> None:
+        """Persist IRF machine state under session ``irf`` key."""
+        data = self._ensure_session_data(session_id)
+        data["irf"] = state.to_session_dict()
+        self._write_file(session_id, data)
+
+    def apply_parser_result(
+        self,
+        session_id: str,
+        command: str,
+        output: ParserOutput,
+    ) -> IRFSessionState:
+        """Apply Parser output, persist P_{t+1}, return updated IRF state.
+
+        Increments round and appends command history. Does not modify feed.
+        """
+        state = self.get_irf_state(session_id)
+        next_state = state.apply_parser_output(command, output)
+        self.save_irf_state(session_id, next_state)
+        return next_state
+
+    def save_irf_feed(
+        self,
+        session_id: str,
+        feed: RecommendationFeed,
+    ) -> IRFSessionState:
+        """Persist a newly generated recommendation feed R_t."""
+        state = self.get_irf_state(session_id)
+        next_state = state.with_feed(feed)
+        self.save_irf_state(session_id, next_state)
+        return next_state
 
 
 session_manager = SessionManager()

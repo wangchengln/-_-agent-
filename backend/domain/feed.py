@@ -122,3 +122,35 @@ class RecommendationFeed(BaseModel):
             total_candidates=total_candidates or len(poi_items),
             k=k,
         )
+
+    def to_parser_context(self, *, max_items: int = 5) -> str:
+        """Compact feed summary for Parser Agent prompt injection."""
+        if not self.items:
+            return f"[当前推荐 R_t · 第{self.round}轮] (空)"
+
+        header = f"[当前推荐 R_t · 第{self.round}轮 · 展示{min(len(self.items), max_items)}条"
+        if self.total_candidates is not None:
+            header += f" / 候选{self.total_candidates}个"
+        header += "]"
+
+        lines = [header]
+        for scored in self.items[:max_items]:
+            poi = scored.item
+            rank = scored.rank or "?"
+            parts = [f"#{rank} {poi.name}", poi.type]
+
+            if poi.rating is not None:
+                parts.append(f"评分{poi.rating:g}")
+            if poi.distance_m is not None:
+                if poi.distance_m >= 1000:
+                    parts.append(f"{poi.distance_m / 1000:.1f}km")
+                else:
+                    parts.append(f"{int(poi.distance_m)}m")
+            if poi.tags:
+                parts.append("标签:" + ",".join(poi.tags[:6]))
+            if scored.score is not None:
+                parts.append(f"得分{scored.score:.2f}")
+
+            lines.append(" | ".join(parts))
+
+        return "\n".join(lines)

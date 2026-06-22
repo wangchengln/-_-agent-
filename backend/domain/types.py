@@ -19,8 +19,14 @@ class VenueType(str, Enum):
 class GeoLocation(BaseModel):
     """Geographic anchor used for POI search and distance filtering."""
 
-    lng: float = Field(description="Longitude (GCJ-02)")
-    lat: float = Field(description="Latitude (GCJ-02)")
+    lng: float | None = Field(
+        default=None,
+        description="Longitude (GCJ-02); null until geocoded by Planner",
+    )
+    lat: float | None = Field(
+        default=None,
+        description="Latitude (GCJ-02); null until geocoded by Planner",
+    )
     city: str | None = Field(default=None, description="City name, e.g. 上海")
     adcode: str | None = Field(default=None, description="Administrative region code")
     address: str | None = Field(
@@ -29,15 +35,15 @@ class GeoLocation(BaseModel):
 
     @field_validator("lng")
     @classmethod
-    def validate_longitude(cls, value: float) -> float:
-        if not (-180.0 <= value <= 180.0):
+    def validate_longitude(cls, value: float | None) -> float | None:
+        if value is not None and not (-180.0 <= value <= 180.0):
             raise ValueError("longitude must be between -180 and 180")
         return value
 
     @field_validator("lat")
     @classmethod
-    def validate_latitude(cls, value: float) -> float:
-        if not (-90.0 <= value <= 90.0):
+    def validate_latitude(cls, value: float | None) -> float | None:
+        if value is not None and not (-90.0 <= value <= 90.0):
             raise ValueError("latitude must be between -90 and 90")
         return value
 
@@ -53,4 +59,6 @@ class GeoLocation(BaseModel):
         return cls(lng=lng, lat=lat, **kwargs)
 
     def to_amap_location(self) -> str:
+        if self.lng is None or self.lat is None:
+            raise ValueError("anchor coordinates are not set")
         return f"{self.lng},{self.lat}"
