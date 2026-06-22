@@ -262,6 +262,19 @@ class PreferenceProfile(BaseModel):
             }
         )
 
+    def positive_soft_query_text(self) -> str:
+        """Soft-preference-only text for Matcher embedding.
+
+        Excludes city/category (those are location context and hard filters,
+        not semantic vibe signals), so the semantic Matcher engages only when
+        the user expressed a genuine soft preference.
+        """
+        parts: list[str] = []
+        parts.extend(self.positive_soft.tags)
+        parts.extend(self.positive_soft.keywords)
+        parts.extend(self.positive_soft.cuisine_types)
+        return " ".join(part.strip() for part in parts if part.strip())
+
     def semantic_query_text(self) -> str:
         """Build a text blob for embedding-based Matcher scoring."""
         parts: list[str] = []
