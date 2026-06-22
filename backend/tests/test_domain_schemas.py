@@ -14,7 +14,7 @@ from domain import (
 
 
 def test_fixture_round_trip() -> None:
-    fixture_path = Path(__file__).parent / "domain" / "fixtures" / "sample_feed.json"
+    fixture_path = Path(__file__).parent.parent / "domain" / "fixtures" / "sample_feed.json"
     feed = RecommendationFeed.model_validate_json(
         fixture_path.read_text(encoding="utf-8")
     )

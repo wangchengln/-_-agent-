@@ -42,6 +42,7 @@ app.add_middleware(
 )
 
 from api.chat import router as chat_router
+from api.recommend import router as recommend_router
 from api.files import router as files_router
 from api.sessions import router as sessions_router
 from api.tokens import router as tokens_router
@@ -49,6 +50,7 @@ from api.compress import router as compress_router
 from api.config_api import router as config_router
 
 app.include_router(chat_router, prefix="/api")
+app.include_router(recommend_router, prefix="/api")
 app.include_router(files_router, prefix="/api")
 app.include_router(sessions_router, prefix="/api")
 app.include_router(tokens_router, prefix="/api")

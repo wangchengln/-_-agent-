@@ -15,7 +15,7 @@ from domain import (
 )
 from graph.session_manager import SessionManager
 
-FIXTURE_FEED = Path(__file__).parent / "domain" / "fixtures" / "sample_feed.json"
+FIXTURE_FEED = Path(__file__).parent.parent / "domain" / "fixtures" / "sample_feed.json"
 
 
 def _make_manager(tmp_dir: Path) -> SessionManager:
@@ -176,6 +176,110 @@ def test_irf_coexists_with_messages() -> None:
         print("irf + messages coexist OK")
 
 
+def test_messages_preserved_after_irf_commit() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        manager = _make_manager(Path(tmp))
+        feed = RecommendationFeed.model_validate_json(
+            FIXTURE_FEED.read_text(encoding="utf-8")
+        )
+        manager.create_session("commit-msg")
+        manager.save_message("commit-msg", "user", "上海周末")
+
+        prior = IRFSessionState.empty()
+        output = ParserOutput(
+            preference=feed.preference_snapshot,
+            intent_summary="上海文艺周末",
+        )
+        final = manager.commit_irf_round(
+            "commit-msg", prior, "上海周末", output, feed
+        )
+
+        assert final.round == 2
+        assert manager.load_session("commit-msg")[0]["content"] == "上海周末"
+        assert manager.get_irf_state("commit-msg").current_feed is not None
+        print("messages preserved after commit_irf_round OK")
+
+
+def test_irf_preserved_after_save_message() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        manager = _make_manager(Path(tmp))
+        feed = RecommendationFeed.model_validate_json(
+            FIXTURE_FEED.read_text(encoding="utf-8")
+        )
+        manager.create_session("msg-after-irf")
+        manager.save_irf_state(
+            "msg-after-irf",
+            IRFSessionState(round=2, preference=feed.preference_snapshot, current_feed=feed),
+        )
+        manager.save_message("msg-after-irf", "assistant", "推荐已更新")
+
+        irf = manager.get_irf_state("msg-after-irf")
+        assert irf.round == 2
+        assert irf.current_feed is not None
+        assert len(manager.load_session("msg-after-irf")) == 1
+        print("irf preserved after save_message OK")
+
+
+def test_irf_preserved_after_compress_history() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        manager = _make_manager(Path(tmp))
+        feed = RecommendationFeed.model_validate_json(
+            FIXTURE_FEED.read_text(encoding="utf-8")
+        )
+        manager.create_session("compress-irf")
+        manager.save_message("compress-irf", "user", "第一条")
+        manager.save_message("compress-irf", "assistant", "回复")
+        manager.save_irf_state(
+            "compress-irf",
+            IRFSessionState(round=2, preference=feed.preference_snapshot, current_feed=feed),
+        )
+
+        manager.compress_history("compress-irf", "摘要", num_to_remove=2)
+
+        irf = manager.get_irf_state("compress-irf")
+        raw = manager._read_file("compress-irf")
+        assert irf.round == 2
+        assert irf.current_feed is not None
+        assert raw.get("compressed_context") == "摘要"
+        assert raw["messages"] == []
+        print("irf preserved after compress_history OK")
+
+
+def test_commit_irf_round_single_write() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        manager = _make_manager(Path(tmp))
+        feed = RecommendationFeed.model_validate_json(
+            FIXTURE_FEED.read_text(encoding="utf-8")
+        )
+        manager.create_session("commit-once")
+        prior = IRFSessionState(
+            round=1,
+            preference=feed.preference_snapshot,
+            command_history=[],
+        )
+        output = ParserOutput(
+            preference=feed.preference_snapshot.model_copy(
+                update={"positive_hard": feed.preference_snapshot.positive_hard.model_copy(
+                    update={"radius_m": 2000}
+                )}
+            ),
+            intent_summary="半径2公里",
+        )
+
+        final = manager.commit_irf_round(
+            "commit-once", prior, "2公里内", output, feed
+        )
+        assert final.round == 2
+        assert final.preference.positive_hard.radius_m == 2000
+        assert final.command_history == ["2公里内"]
+        assert final.current_feed is not None
+
+        reloaded = manager.get_irf_state("commit-once")
+        assert reloaded.round == 2
+        assert reloaded.preference.positive_hard.radius_m == 2000
+        print("commit_irf_round OK")
+
+
 if __name__ == "__main__":
     test_get_irf_state_empty_session()
     test_legacy_session_without_irf()
@@ -184,4 +288,8 @@ if __name__ == "__main__":
     test_save_irf_feed()
     test_legacy_preference_state_alias()
     test_irf_coexists_with_messages()
+    test_messages_preserved_after_irf_commit()
+    test_irf_preserved_after_save_message()
+    test_irf_preserved_after_compress_history()
+    test_commit_irf_round_single_write()
     print("ALL MODULE D TESTS PASSED")

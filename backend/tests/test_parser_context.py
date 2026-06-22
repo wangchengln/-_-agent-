@@ -13,7 +13,7 @@ from domain import (
 )
 
 
-FIXTURE_FEED = Path(__file__).parent / "domain" / "fixtures" / "sample_feed.json"
+FIXTURE_FEED = Path(__file__).parent.parent / "domain" / "fixtures" / "sample_feed.json"
 
 
 def test_preference_to_parser_context_empty() -> None:

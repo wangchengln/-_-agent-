@@ -27,7 +27,7 @@ from graph.parser_agent import (
     _normalize_preference,
 )
 
-FIXTURE_FEED = Path(__file__).parent / "domain" / "fixtures" / "sample_feed.json"
+FIXTURE_FEED = Path(__file__).parent.parent / "domain" / "fixtures" / "sample_feed.json"
 
 load_dotenv()
 

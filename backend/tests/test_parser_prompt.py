@@ -20,7 +20,7 @@ from graph.parser_prompt import (
     load_parser_user_template,
 )
 
-FIXTURE_FEED = Path(__file__).parent / "domain" / "fixtures" / "sample_feed.json"
+FIXTURE_FEED = Path(__file__).parent.parent / "domain" / "fixtures" / "sample_feed.json"
 
 
 def test_prompt_files_exist() -> None:

@@ -16,7 +16,7 @@ from recsys import (
     ScoringConfig,
 )
 
-GOLDEN_FEED = Path(__file__).parent / "domain" / "fixtures" / "golden_feed.json"
+GOLDEN_FEED = Path(__file__).parent.parent / "domain" / "fixtures" / "golden_feed.json"
 
 
 def test_default_config_values() -> None:

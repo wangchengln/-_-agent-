@@ -285,10 +285,37 @@ class SessionManager:
         return IRFSessionState.from_session_dict(irf_raw)
 
     def save_irf_state(self, session_id: str, state: IRFSessionState) -> None:
-        """Persist IRF machine state under session ``irf`` key."""
+        """Persist IRF machine state under session ``irf`` key.
+
+        Preserves ``messages``, ``compressed_context``, and other session
+        metadata already stored in the file.
+        """
         data = self._ensure_session_data(session_id)
         data["irf"] = state.to_session_dict()
         self._write_file(session_id, data)
+
+    def commit_irf_round(
+        self,
+        session_id: str,
+        prior_state: IRFSessionState,
+        command: str,
+        parser_output: ParserOutput,
+        feed: RecommendationFeed,
+    ) -> IRFSessionState:
+        """Atomically persist a successful IRF round (single read + write).
+
+        Computes ``P_{t+1}`` and ``R_{t+1}`` from *prior_state* (the snapshot
+        loaded at round start) and writes both in one ``save_irf_state`` call.
+
+        This is the preferred persistence path for :class:`recsys.loop.IRFLoop`.
+        Use :meth:`apply_parser_result` or :meth:`save_irf_feed` only when
+        running Parser or Planner in isolation (CLI / debug).
+        """
+        final_state = prior_state.apply_parser_output(
+            command, parser_output
+        ).with_feed(feed)
+        self.save_irf_state(session_id, final_state)
+        return final_state
 
     def apply_parser_result(
         self,
@@ -299,6 +326,10 @@ class SessionManager:
         """Apply Parser output, persist P_{t+1}, return updated IRF state.
 
         Increments round and appends command history. Does not modify feed.
+
+        .. note::
+            Performs a separate read/write. For a full IRF round use
+            :meth:`commit_irf_round` instead (used by the recommend loop).
         """
         state = self.get_irf_state(session_id)
         next_state = state.apply_parser_output(command, output)
@@ -310,7 +341,12 @@ class SessionManager:
         session_id: str,
         feed: RecommendationFeed,
     ) -> IRFSessionState:
-        """Persist a newly generated recommendation feed R_t."""
+        """Persist a newly generated recommendation feed R_t.
+
+        .. note::
+            Performs a separate read/write. For a full IRF round use
+            :meth:`commit_irf_round` instead (used by the recommend loop).
+        """
         state = self.get_irf_state(session_id)
         next_state = state.with_feed(feed)
         self.save_irf_state(session_id, next_state)
