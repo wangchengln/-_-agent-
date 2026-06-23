@@ -137,7 +137,8 @@ def feed_item_payload(scored: ScoredPOIItem, preference: PreferenceProfile) -> d
 
     Deliberately omits internal scoring internals (raw Amap payload, full
     breakdown) and instead surfaces only what a card needs to render, plus a
-    human-readable ``reason``.
+    human-readable ``reason``. Includes ``lng``/``lat`` (GCJ-02) for map and
+    itinerary planning (Day 6).
     """
     poi = scored.item
     return {
@@ -145,6 +146,8 @@ def feed_item_payload(scored: ScoredPOIItem, preference: PreferenceProfile) -> d
         "poi_id": poi.id,
         "name": poi.name,
         "type": poi.type,
+        "lng": poi.location.lng,
+        "lat": poi.location.lat,
         "rating": poi.rating,
         "distance_m": poi.distance_m,
         "cost": poi.cost,
@@ -183,17 +186,31 @@ def _build_item_reason(scored: ScoredPOIItem, preference: PreferenceProfile) -> 
     return f"{poi.name}：" + "，".join(bits) + "。"
 
 
-def feed_event(feed: RecommendationFeed, preference: PreferenceProfile) -> LoopEvent:
-    """The recommendation feed R_{t+1}: items + current preference + round."""
+def feed_event(
+    feed: RecommendationFeed,
+    preference: PreferenceProfile,
+) -> LoopEvent:
+    """The recommendation feed R_{t+1}: items + user preference + weather context.
+
+    ``preference`` is the persisted Parser profile (sidebar). Item ``reason`` text
+    uses ``feed.preference_snapshot`` (may include ephemeral weather adjustments).
+    """
+    scoring_pref = feed.preference_snapshot
+    weather_payload = (
+        feed.weather.model_dump(mode="json") if feed.weather is not None else None
+    )
     return LoopEvent(
         type="feed",
         payload={
             "round": feed.round,
             "k": feed.k,
             "total_candidates": feed.total_candidates,
-            "items": [feed_item_payload(item, preference) for item in feed.items],
+            "items": [
+                feed_item_payload(item, scoring_pref) for item in feed.items
+            ],
             "preference": preference.model_dump(mode="json"),
             "preference_summary": preference.to_parser_context(),
+            "weather": weather_payload,
         },
     )
 

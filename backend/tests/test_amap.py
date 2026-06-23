@@ -26,9 +26,9 @@ def test_amap_integration(
 ) -> bool:
     from tools.amap_client import AmapClient, AmapClientError, AmapConfigError
 
-    api_key = os.getenv("AMAP_API_KEY")
+    api_key = os.getenv("AMAP_WEB_SERVICE_KEY") or os.getenv("AMAP_API_KEY")
     if not api_key:
-        print("[FAIL] 未设置 AMAP_API_KEY，请在 backend/.env 中配置")
+        print("[FAIL] 未设置 AMAP_WEB_SERVICE_KEY，请在 backend/.env 中配置")
         return False
 
     client = AmapClient(api_key=api_key)
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     print("[FAIL] 集成测试失败")
     print("\n使用说明:")
     print("1. 在 https://console.amap.com/ 申请 Web 服务 Key")
-    print("2. 在 backend/.env 设置 AMAP_API_KEY=your_key")
+    print("2. 在 backend/.env 设置 AMAP_WEB_SERVICE_KEY=your_web_service_key")
     print("3. 运行: python test_amap.py [地址] [关键词]")
     print("   示例: python test_amap.py 上海市人民广场 咖啡")
     sys.exit(1)

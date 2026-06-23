@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST='{"components\\\\memory\\\\MemoryEditor.tsx -> @monaco-editor/react":{"id":2289,"files":["static/chunks/289.4e8898e427a5764e.js"]},"components\\\\skills\\\\SkillEditor.tsx -> @monaco-editor/react":{"id":2289,"files":["static/chunks/289.4e8898e427a5764e.js"]}}';
+self.__REACT_LOADABLE_MANIFEST="{}"

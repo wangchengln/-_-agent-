@@ -11,6 +11,7 @@ import React, {
 import {
   streamChat,
   streamRecommend,
+  buildItinerary as apiBuildItinerary,
   listSessions as apiListSessions,
   createSession as apiCreateSession,
   renameSession as apiRenameSession,
@@ -25,10 +26,17 @@ import type {
   PreferenceProfile,
   RecommendErrorPayload,
   RecommendFeedPayload,
+  TransportMode,
+  WeekendItinerary,
+  ItineraryErrorPayload,
 } from "./recommend-types";
 import {
   isRecommendErrorPayload,
   isRecommendFeedPayload,
+  isBuildItineraryResponse,
+  isItineraryErrorCode,
+  MAX_ITINERARY_STOPS,
+  MIN_ITINERARY_STOPS,
 } from "./recommend-types";
 
 const RECOMMEND_MODE_STORAGE_KEY = "openclaw-recommend-mode";
@@ -126,6 +134,19 @@ interface AppState {
   lastRecommendCommand: string;
   sendRecommendCommand: (text: string, options?: { k?: number }) => Promise<void>;
   resetRecommendState: () => void;
+
+  // Itinerary selection (Day 6.5)
+  selectedPoiIds: string[];
+  transportMode: TransportMode;
+  setTransportMode: (mode: TransportMode) => void;
+  toggleSelectPoi: (poiId: string) => void;
+  clearSelectedPois: () => void;
+  isBuildingItinerary: boolean;
+  currentItinerary: WeekendItinerary | null;
+  lastItineraryError: ItineraryErrorPayload | null;
+  buildWeekendItinerary: () => Promise<void>;
+  activeItineraryStopId: string | null;
+  setActiveItineraryStopId: (poiId: string | null) => void;
 }
 
 const AppContext = createContext<AppState | null>(null);
@@ -162,6 +183,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     useState<RecommendErrorPayload | null>(null);
   const [lastRecommendCommand, setLastRecommendCommand] = useState("");
 
+  // Itinerary selection / planning
+  const [selectedPoiIds, setSelectedPoiIds] = useState<string[]>([]);
+  const [transportMode, setTransportMode] = useState<TransportMode>("walking");
+  const [isBuildingItinerary, setIsBuildingItinerary] = useState(false);
+  const [currentItinerary, setCurrentItinerary] = useState<WeekendItinerary | null>(null);
+  const [lastItineraryError, setLastItineraryError] =
+    useState<ItineraryErrorPayload | null>(null);
+  const [activeItineraryStopId, setActiveItineraryStopId] = useState<string | null>(null);
+
   // ── Ghost session management ──────────────────────────
   // A "ghost" is a session created on the backend but not shown in the sidebar.
   // It becomes visible only when the backend sends a `title` event (first response).
@@ -189,6 +219,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setLastRecommendError(null);
     setLastRecommendCommand("");
     recommendAbortRef.current = false;
+    setSelectedPoiIds([]);
+    setCurrentItinerary(null);
+    setLastItineraryError(null);
+    setActiveItineraryStopId(null);
   }, []);
 
   /** Create a new ghost session: active but invisible in sidebar. */
@@ -507,6 +541,68 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  const clearSelectedPois = useCallback(() => {
+    setSelectedPoiIds([]);
+  }, []);
+
+  const toggleSelectPoi = useCallback((poiId: string) => {
+    setLastItineraryError(null);
+    setSelectedPoiIds((prev) => {
+      if (prev.includes(poiId)) {
+        return prev.filter((id) => id !== poiId);
+      }
+      if (prev.length >= MAX_ITINERARY_STOPS) {
+        return prev;
+      }
+      return [...prev, poiId];
+    });
+  }, []);
+
+  const buildWeekendItinerary = useCallback(async () => {
+    if (isBuildingItinerary || isRecommending || isCompressing) return;
+    if (selectedPoiIds.length < MIN_ITINERARY_STOPS) return;
+
+    setIsBuildingItinerary(true);
+    setLastItineraryError(null);
+
+    try {
+      const response = await apiBuildItinerary({
+        session_id: sessionId,
+        poi_ids: selectedPoiIds,
+        transport_mode: transportMode,
+      });
+
+      if (!isBuildItineraryResponse(response)) {
+        throw new Error("Invalid itinerary response");
+      }
+
+      setCurrentItinerary(response.itinerary);
+      setActiveItineraryStopId(
+        response.itinerary.stops[0]?.poi_id ?? null
+      );
+    } catch (err) {
+      const code =
+        err instanceof Error &&
+        isItineraryErrorCode((err as Error & { code?: string }).code)
+          ? (err as Error & { code: ItineraryErrorPayload["code"] }).code
+          : "internal_error";
+      setLastItineraryError({
+        code,
+        message:
+          err instanceof Error ? err.message : "行程规划失败，请稍后再试",
+      });
+    } finally {
+      setIsBuildingItinerary(false);
+    }
+  }, [
+    isBuildingItinerary,
+    isRecommending,
+    isCompressing,
+    selectedPoiIds,
+    sessionId,
+    transportMode,
+  ]);
+
   // ── Send message ───────────────────────────────────
 
   const currentAssistantIdRef = useRef("");
@@ -749,6 +845,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 setRound(feedPayload.round);
                 setPreference(feedPayload.preference);
                 setFeedHistory((prev) => [...prev, feedPayload]);
+                setSelectedPoiIds([]);
+                setCurrentItinerary(null);
+                setLastItineraryError(null);
+                setActiveItineraryStopId(null);
               }
               break;
             }
@@ -842,6 +942,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         lastRecommendCommand,
         sendRecommendCommand,
         resetRecommendState,
+        selectedPoiIds,
+        transportMode,
+        setTransportMode,
+        toggleSelectPoi,
+        clearSelectedPois,
+        isBuildingItinerary,
+        currentItinerary,
+        lastItineraryError,
+        buildWeekendItinerary,
+        activeItineraryStopId,
+        setActiveItineraryStopId,
       }}
     >
       {children}

@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from domain.feed import RecommendationFeed, ScoreBreakdown, ScoredPOIItem
 from domain.poi import POIItem
 from domain.preference import PreferenceProfile
+from domain.weather import WeatherSnapshot
 from recsys.attenuator import AttenuatorScore
 from recsys.config import DEFAULT_SCORING_CONFIG
 from recsys.matcher import MatcherScores
@@ -93,6 +94,7 @@ def build_recommendation_feed(
     user_command: str | None = None,
     total_candidates: int | None = None,
     k: int = DEFAULT_SCORING_CONFIG.k,
+    weather: WeatherSnapshot | None = None,
 ) -> RecommendationFeed:
     """Rank candidates and wrap them into a :class:`RecommendationFeed` R_t."""
     items = aggregate_and_rank(pois, matcher_scores, attenuator_scores, k=k)
@@ -105,4 +107,5 @@ def build_recommendation_feed(
             total_candidates if total_candidates is not None else len(pois)
         ),
         k=k,
+        weather=weather,
     )

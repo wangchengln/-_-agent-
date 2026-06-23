@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 
 from domain.poi import POIItem, parse_amap_pois
 from domain.types import GeoLocation
+from tools.amap_keys import get_amap_web_service_key
 
 
 class AmapClientError(Exception):
@@ -119,7 +120,7 @@ class AmapClient:
         cache_ttl: int = 300,
         cache_enabled: bool = True,
     ) -> None:
-        self.api_key = api_key or os.getenv("AMAP_API_KEY")
+        self.api_key = api_key or get_amap_web_service_key()
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.cache_ttl = cache_ttl
@@ -133,7 +134,8 @@ class AmapClient:
     def _ensure_api_key(self) -> str:
         if not self.api_key:
             raise AmapConfigError(
-                "AMAP_API_KEY is not configured. Add it to backend/.env"
+                "AMAP_WEB_SERVICE_KEY is not configured. "
+                "Add it to backend/.env (Web 服务 Key，非 JS API Key)"
             )
         return self.api_key
 

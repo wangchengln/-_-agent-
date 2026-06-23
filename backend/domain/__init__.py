@@ -7,6 +7,13 @@ from domain.irf_state import (
     ParserInput,
     ParserOutput,
 )
+from domain.itinerary import (
+    BuildItineraryRequest,
+    BuildItineraryResponse,
+    ItineraryLeg,
+    ItineraryStop,
+    WeekendItinerary,
+)
 from domain.poi import POIItem, parse_amap_poi, parse_amap_pois
 from domain.preference import (
     NegativeHardConstraints,
@@ -31,6 +38,11 @@ __all__ = [
     "ScoreBreakdown",
     "ScoredPOIItem",
     "RecommendationFeed",
+    "BuildItineraryRequest",
+    "BuildItineraryResponse",
+    "ItineraryLeg",
+    "ItineraryStop",
+    "WeekendItinerary",
     "IRFSessionState",
     "ParserInput",
     "ParserOutput",

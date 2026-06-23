@@ -8,11 +8,24 @@ interface Props {
   onClose: () => void;
 }
 
-const KEY_FIELDS = [
+interface KeyField {
+  key: string;
+  label: string;
+  isUrl: boolean;
+  hint?: string;
+}
+
+const KEY_FIELDS: KeyField[] = [
   { key: "DEEPSEEK_API_KEY", label: "DeepSeek API Key", isUrl: false },
   { key: "OPENAI_API_KEY", label: "OpenAI API Key", isUrl: false },
   { key: "OPENAI_BASE_URL", label: "OpenAI Base URL", isUrl: true },
   { key: "TAVILY_API_KEY", label: "Tavily API Key", isUrl: false },
+  {
+    key: "AMAP_WEB_SERVICE_KEY",
+    label: "高德 Web 服务 Key",
+    isUrl: false,
+    hint: "后端 POI / 天气 / 路径（非 JS Key）",
+  },
 ];
 
 export default function SettingsModal({ onClose }: Props) {
@@ -80,11 +93,16 @@ export default function SettingsModal({ onClose }: Props) {
           {loading ? (
             <p className="text-[13px] text-center py-8" style={{ color: "var(--text-muted)" }}>Loading...</p>
           ) : (
-            KEY_FIELDS.map(({ key, label, isUrl }) => (
+            KEY_FIELDS.map(({ key, label, isUrl, hint }) => (
               <div key={key}>
                 <label className="block text-[12px] font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>
                   {label}
                 </label>
+                {hint && (
+                  <p className="text-[10px] mb-1" style={{ color: "var(--text-muted)" }}>
+                    {hint}
+                  </p>
+                )}
                 <div className="relative">
                   <input
                     type={isUrl || visible[key] ? "text" : "password"}
@@ -118,6 +136,7 @@ export default function SettingsModal({ onClose }: Props) {
             <Shield className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: "var(--text-muted)" }} />
             <p className="text-[11px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
               API Key 安全存储在本地 .env 文件中，不会上传到任何服务器。
+              高德 JS API Key 请配置在 frontend/.env.local（NEXT_PUBLIC_AMAP_JS_KEY）。
             </p>
           </div>
         </div>

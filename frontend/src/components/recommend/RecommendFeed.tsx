@@ -8,13 +8,16 @@ import {
   Loader2,
   MapPin,
   PanelRightOpen,
+  Route,
   Sparkles,
 } from "lucide-react";
 import { useApp } from "@/lib/store";
-import { RECOMMEND_ERROR_SUGGESTIONS } from "@/lib/recommend-types";
+import { RECOMMEND_ERROR_SUGGESTIONS, MAX_ITINERARY_STOPS } from "@/lib/recommend-types";
 import ThoughtChain from "@/components/chat/ThoughtChain";
 import RecommendCard from "./RecommendCard";
 import RecommendInput from "./RecommendInput";
+import ItineraryToolbar from "./ItineraryToolbar";
+import WeatherBanner from "./WeatherBanner";
 
 const QUICK_HINTS = [
   "上海周末文艺一点，别去商场，不要太远",
@@ -24,6 +27,7 @@ const QUICK_HINTS = [
 
 interface Props {
   onOpenPreference?: () => void;
+  onOpenItinerary?: () => void;
 }
 
 function FeedSkeleton() {
@@ -65,7 +69,7 @@ function QuickHint({ text }: { text: string }) {
   );
 }
 
-export default function RecommendFeed({ onOpenPreference }: Props) {
+export default function RecommendFeed({ onOpenPreference, onOpenItinerary }: Props) {
   const {
     currentFeed,
     round,
@@ -77,6 +81,9 @@ export default function RecommendFeed({ onOpenPreference }: Props) {
     recommendRationale,
     lastRecommendError,
     sendRecommendCommand,
+    selectedPoiIds,
+    toggleSelectPoi,
+    currentItinerary,
   } = useApp();
 
   const [rationaleOpen, setRationaleOpen] = useState(false);
@@ -87,6 +94,7 @@ export default function RecommendFeed({ onOpenPreference }: Props) {
   const showEmpty = !isRecommending && items.length === 0 && !lastRecommendError;
   const dimCards = isRecommending && items.length > 0;
   const anchor = preference?.anchor ?? currentFeed?.preference.anchor ?? null;
+  const selectionAtMax = selectedPoiIds.length >= MAX_ITINERARY_STOPS;
 
   // Scroll feed back to top whenever a new round arrives.
   useEffect(() => {
@@ -166,12 +174,29 @@ export default function RecommendFeed({ onOpenPreference }: Props) {
               偏好
             </button>
           )}
+          {currentItinerary && onOpenItinerary && (
+            <button
+              onClick={onOpenItinerary}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors hover:opacity-80"
+              style={{
+                color: "var(--accent)",
+                border: "1px solid var(--border-accent)",
+                background: "var(--accent-bg)",
+              }}
+              title="查看周末行程"
+            >
+              <Route className="w-3.5 h-3.5" />
+              行程
+            </button>
+          )}
         </div>
       </div>
 
       {/* Scrollable body */}
       <div ref={bodyRef} className="flex-1 overflow-y-auto">
         <div className="max-w-5xl mx-auto px-6 py-5 space-y-4">
+          <WeatherBanner weather={currentFeed?.weather} />
+
           {needsClarification && (
             <div
               className="flex items-start gap-2 px-3 py-2 rounded-lg text-[12px]"
@@ -267,14 +292,21 @@ export default function RecommendFeed({ onOpenPreference }: Props) {
                 dimCards ? "opacity-70" : ""
               }`}
             >
-              {items.map((item) => (
-                <RecommendCard
-                  key={`${item.poi_id}-${item.rank}`}
-                  item={item}
-                  anchor={anchor}
-                  dimmed={dimCards}
-                />
-              ))}
+              {items.map((item) => {
+                const isSelected = selectedPoiIds.includes(item.poi_id);
+                return (
+                  <RecommendCard
+                    key={`${item.poi_id}-${item.rank}`}
+                    item={item}
+                    anchor={anchor}
+                    dimmed={dimCards}
+                    selectable
+                    selected={isSelected}
+                    selectionDisabled={selectionAtMax && !isSelected}
+                    onToggleSelect={() => toggleSelectPoi(item.poi_id)}
+                  />
+                );
+              })}
             </div>
           )}
 
@@ -316,6 +348,7 @@ export default function RecommendFeed({ onOpenPreference }: Props) {
         </div>
       </div>
 
+      <ItineraryToolbar />
       <RecommendInput />
     </div>
   );

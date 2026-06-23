@@ -1,0 +1,90 @@
+{
+  "session_id": "sample-session",
+  "round": 1,
+  "anchor": {
+    "lng": 121.4737,
+    "lat": 31.2304,
+    "city": "上海",
+    "adcode": "310100",
+    "address": "上海市黄浦区"
+  },
+  "transport_mode": "walking",
+  "day_start": "09:30",
+  "day_end": "21:00",
+  "stops": [
+    {
+      "order": 1,
+      "poi_id": "B001A0LXYZ",
+      "name": "武康路历史文化名街",
+      "type": "风景名胜;历史建筑",
+      "lng": 121.4374,
+      "lat": 31.2043,
+      "address": "上海市徐汇区武康路",
+      "arrive_at": "09:30",
+      "leave_at": "11:00",
+      "dwell_min": 90
+    },
+    {
+      "order": 2,
+      "poi_id": "B002B1MNPQ",
+      "name": "西岸美术馆",
+      "type": "科教文化服务;美术馆",
+      "lng": 121.4638,
+      "lat": 31.1675,
+      "address": "上海市徐汇区龙腾大道2600号",
+      "arrive_at": "11:25",
+      "leave_at": "12:25",
+      "dwell_min": 60
+    },
+    {
+      "order": 3,
+      "poi_id": "B003C2RSTU",
+      "name": "徐汇滨江绿道",
+      "type": "风景名胜;公园",
+      "lng": 121.4582,
+      "lat": 31.1712,
+      "address": "上海市徐汇区龙腾大道沿线",
+      "arrive_at": "12:35",
+      "leave_at": "14:05",
+      "dwell_min": 90
+    }
+  ],
+  "legs": [
+    {
+      "from_poi_id": "B001A0LXYZ",
+      "to_poi_id": "B002B1MNPQ",
+      "mode": "walking",
+      "distance_m": 4200,
+      "duration_s": 1500,
+      "depart_at": "11:00",
+      "arrive_at": "11:25",
+      "path": [[121.4374, 31.2043], [121.4638, 31.1675]],
+      "estimated": false
+    },
+    {
+      "from_poi_id": "B002B1MNPQ",
+      "to_poi_id": "B003C2RSTU",
+      "mode": "walking",
+      "distance_m": 800,
+      "duration_s": 600,
+      "depart_at": "12:25",
+      "arrive_at": "12:35",
+      "path": [],
+      "estimated": false
+    }
+  ],
+  "total_distance_m": 5000,
+  "total_travel_min": 35,
+  "total_dwell_min": 240,
+  "weather": {
+    "city": "上海",
+    "adcode": "310100",
+    "summary": "晴",
+    "temperature": "26",
+    "is_rainy": false,
+    "injected_rule": null,
+    "fetched": true
+  },
+  "warnings": [],
+  "generated_at": 1710000000.0
+}

@@ -7,18 +7,27 @@ import LearnPanel from "@/components/layout/LearnPanel";
 import ChatPanel from "@/components/chat/ChatPanel";
 import RecommendFeed from "@/components/recommend/RecommendFeed";
 import PreferenceSidebar from "@/components/recommend/PreferenceSidebar";
+import ItineraryPanel from "@/components/recommend/ItineraryPanel";
 import RawMessagesPanel from "@/components/chat/RawMessagesPanel";
 import CanvasPanel from "@/components/chat/CanvasPanel";
 import { useApp } from "@/lib/store";
 
-type RightPanel = "none" | "raw" | "canvas" | "preference";
+type RightPanel = "none" | "raw" | "canvas" | "preference" | "itinerary";
 
 export default function Home() {
   const [rightPanel, setRightPanel] = useState<RightPanel>("none");
   const [learnOpen, setLearnOpen] = useState(false);
-  const { canvasStreaming, sessionId, resetCanvas, sidebarOpen, recommendMode } = useApp();
+  const {
+    canvasStreaming,
+    sessionId,
+    resetCanvas,
+    sidebarOpen,
+    recommendMode,
+    currentItinerary,
+  } = useApp();
   const wasStreamingRef = useRef(false);
   const prevSessionRef = useRef(sessionId);
+  const prevItineraryRef = useRef<typeof currentItinerary>(null);
 
   // Auto-open canvas panel when canvas streaming begins
   useEffect(() => {
@@ -28,11 +37,25 @@ export default function Home() {
     wasStreamingRef.current = canvasStreaming;
   }, [canvasStreaming]);
 
+  // Auto-open itinerary panel when a new plan is generated
+  useEffect(() => {
+    if (currentItinerary && !prevItineraryRef.current && recommendMode) {
+      setRightPanel("itinerary");
+    }
+    if (!currentItinerary && prevItineraryRef.current && rightPanel === "itinerary") {
+      setRightPanel("none");
+    }
+    prevItineraryRef.current = currentItinerary;
+  }, [currentItinerary, recommendMode, rightPanel]);
+
   // Close canvas + restore canvas when session changes
   useEffect(() => {
     if (sessionId !== prevSessionRef.current) {
-      // Close canvas / preference panel and reset canvas state on session switch
-      if (rightPanel === "canvas" || rightPanel === "preference") {
+      if (
+        rightPanel === "canvas" ||
+        rightPanel === "preference" ||
+        rightPanel === "itinerary"
+      ) {
         setRightPanel("none");
       }
       resetCanvas();
@@ -46,7 +69,7 @@ export default function Home() {
       if (rightPanel === "raw" || rightPanel === "canvas") {
         setRightPanel("none");
       }
-    } else if (rightPanel === "preference") {
+    } else if (rightPanel === "preference" || rightPanel === "itinerary") {
       setRightPanel("none");
     }
   }, [recommendMode, rightPanel]);
@@ -64,11 +87,14 @@ export default function Home() {
         <div className={`shrink-0 overflow-hidden transition-all duration-300 ${sidebarOpen ? "w-64" : "w-0"}`}>
           <Sidebar />
         </div>
-        <div className="flex-1 overflow-hidden transition-all duration-300">
+        <div className="flex-1 overflow-hidden transition-all duration-300 min-w-0">
           {recommendMode ? (
             <RecommendFeed
               onOpenPreference={() =>
                 setRightPanel((p) => (p === "preference" ? "none" : "preference"))
+              }
+              onOpenItinerary={() =>
+                setRightPanel((p) => (p === "itinerary" ? "none" : "itinerary"))
               }
             />
           ) : (
@@ -96,10 +122,18 @@ export default function Home() {
         )}
         {rightPanel === "preference" && (
           <div
-            className="w-[400px] shrink-0 overflow-hidden animate-slide-in-right"
+            className="w-[400px] shrink-0 overflow-hidden animate-slide-in-right hidden lg:block"
             style={{ borderLeft: "1px solid var(--border)" }}
           >
             <PreferenceSidebar onClose={() => setRightPanel("none")} />
+          </div>
+        )}
+        {rightPanel === "itinerary" && (
+          <div
+            className="w-full sm:w-[400px] lg:w-[420px] shrink-0 overflow-hidden animate-slide-in-right"
+            style={{ borderLeft: "1px solid var(--border)" }}
+          >
+            <ItineraryPanel onClose={() => setRightPanel("none")} />
           </div>
         )}
       </div>

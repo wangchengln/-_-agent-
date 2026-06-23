@@ -29,11 +29,16 @@ SESSION_ID = f"smoke-stream-{int(time.time())}"
 
 # Keys the frontend FeedItem type depends on (recommend-types.ts).
 FEED_ITEM_KEYS = {
-    "rank", "poi_id", "name", "type", "rating",
+    "rank", "poi_id", "name", "type", "lng", "lat", "rating",
     "distance_m", "cost", "address", "tags", "photos", "score", "reason",
 }
 FEED_PAYLOAD_KEYS = {
     "round", "k", "total_candidates", "items", "preference", "preference_summary",
+    "weather",
+}
+
+WEATHER_PAYLOAD_KEYS = {
+    "city", "adcode", "summary", "temperature", "is_rainy", "injected_rule", "fetched",
 }
 
 
@@ -97,8 +102,16 @@ def _assert_feed_contract(feed: dict, *, expected_round: int) -> None:
         missing = FEED_ITEM_KEYS - set(item.keys())
         assert not missing, f"feed item missing keys: {missing}"
         assert isinstance(item["reason"], str) and item["reason"], "empty reason"
+        assert item.get("lng") is not None and item.get("lat") is not None, (
+            f"feed item {item.get('poi_id')} missing lng/lat"
+        )
     assert isinstance(feed["preference"], dict), "preference not an object"
     assert isinstance(feed["preference_summary"], str), "preference_summary not str"
+    weather = feed.get("weather")
+    if weather is not None:
+        missing_w = WEATHER_PAYLOAD_KEYS - set(weather.keys())
+        assert not missing_w, f"weather missing keys: {missing_w}"
+        assert isinstance(weather.get("is_rainy"), bool), "weather.is_rainy not bool"
 
 
 def _summarize(events: list[tuple[str, dict]]) -> dict:

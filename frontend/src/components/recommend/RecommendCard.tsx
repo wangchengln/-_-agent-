@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, ImageOff, MapPin, Star } from "lucide-react";
+import { Check, ExternalLink, ImageOff, MapPin, Star } from "lucide-react";
 import type { FeedItem, GeoLocation } from "@/lib/recommend-types";
 import { formatFeedDistance } from "@/lib/recommend-types";
 
@@ -8,6 +8,10 @@ interface Props {
   item: FeedItem;
   anchor?: GeoLocation | null;
   dimmed?: boolean;
+  selectable?: boolean;
+  selected?: boolean;
+  selectionDisabled?: boolean;
+  onToggleSelect?: () => void;
 }
 
 function formatCost(cost: string | null): string | null {
@@ -38,19 +42,36 @@ function buildMetaLine(item: FeedItem): string {
   return parts.join(" · ");
 }
 
-export default function RecommendCard({ item, anchor, dimmed }: Props) {
+export default function RecommendCard({
+  item,
+  anchor,
+  dimmed,
+  selectable = false,
+  selected = false,
+  selectionDisabled = false,
+  onToggleSelect,
+}: Props) {
   const photo = item.photos[0];
   const meta = buildMetaLine(item);
   const mapUrl = buildMapSearchUrl(item, anchor);
 
+  const handleCardClick = () => {
+    if (!selectable || selectionDisabled || !onToggleSelect) return;
+    onToggleSelect();
+  };
+
   return (
     <article
-      className={`rounded-xl overflow-hidden transition-opacity animate-fade-in-scale ${
+      onClick={handleCardClick}
+      className={`rounded-xl overflow-hidden transition-all animate-fade-in-scale ${
         dimmed ? "opacity-60" : ""
-      }`}
+      } ${selectable ? "cursor-pointer" : ""} ${selectionDisabled && !selected ? "opacity-75" : ""}`}
       style={{
         background: "var(--bg-surface)",
-        border: "1px solid var(--border)",
+        border: selected
+          ? "2px solid var(--accent)"
+          : "1px solid var(--border)",
+        boxShadow: selected ? "0 0 0 1px var(--accent-bg)" : undefined,
       }}
     >
       {/* Cover */}
@@ -77,10 +98,40 @@ export default function RecommendCard({ item, anchor, dimmed }: Props) {
         >
           #{item.rank}
         </span>
-        {item.score != null && (
+        {selectable && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!selectionDisabled || selected) {
+                onToggleSelect?.();
+              }
+            }}
+            disabled={selectionDisabled && !selected}
+            aria-pressed={selected}
+            aria-label={selected ? "取消选择" : "选择此站点"}
+            className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center transition-all disabled:opacity-40"
+            style={{
+              background: selected ? "var(--accent)" : "var(--bg-surface)",
+              border: selected ? "none" : "1px solid var(--border)",
+              color: selected ? "#fff" : "var(--text-muted)",
+            }}
+          >
+            {selected ? <Check className="w-4 h-4" /> : null}
+          </button>
+        )}
+        {!selectable && item.score != null && (
           <span
             className="absolute top-2 right-2 px-2 py-0.5 rounded-md text-[10px] font-mono"
             style={{ background: "var(--bg-surface)", color: "var(--accent)" }}
+          >
+            {item.score.toFixed(2)}
+          </span>
+        )}
+        {selectable && item.score != null && (
+          <span
+            className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md text-[10px] font-mono"
+            style={{ background: "rgba(0,0,0,0.55)", color: "#fff" }}
           >
             {item.score.toFixed(2)}
           </span>
@@ -131,6 +182,7 @@ export default function RecommendCard({ item, anchor, dimmed }: Props) {
           href={mapUrl}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
           className="inline-flex items-center gap-1.5 text-[11px] font-medium transition-opacity hover:opacity-80"
           style={{ color: "var(--accent)" }}
         >

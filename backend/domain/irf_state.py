@@ -12,6 +12,7 @@ from typing import Literal, Self
 from pydantic import BaseModel, Field, field_validator
 
 from domain.feed import RecommendationFeed
+from domain.itinerary import WeekendItinerary
 from domain.preference import PreferenceProfile
 
 MAX_COMMAND_HISTORY = 5
@@ -115,6 +116,10 @@ class IRFSessionState(BaseModel):
         default_factory=list,
         description="Recent user commands, oldest first",
     )
+    current_itinerary: WeekendItinerary | None = Field(
+        default=None,
+        description="Latest generated weekend itinerary (Day 6.3)",
+    )
 
     @classmethod
     def empty(cls) -> Self:
@@ -158,3 +163,7 @@ class IRFSessionState(BaseModel):
     def with_feed(self, feed: RecommendationFeed) -> Self:
         """Attach a newly generated feed R_{t+1} without changing preference."""
         return self.model_copy(update={"current_feed": feed})
+
+    def with_itinerary(self, itinerary: WeekendItinerary) -> Self:
+        """Attach a generated weekend itinerary without changing feed/preference."""
+        return self.model_copy(update={"current_itinerary": itinerary})

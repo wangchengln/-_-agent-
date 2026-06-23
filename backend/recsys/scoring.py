@@ -23,6 +23,7 @@ from typing import Any, Callable
 from domain.feed import RecommendationFeed
 from domain.preference import PreferenceProfile
 from domain.types import VenueType
+from domain.weather import WeatherSnapshot
 from recsys.aggregator import build_recommendation_feed
 from recsys.attenuator import score_attenuator
 from recsys.candidate import retrieve_candidates
@@ -31,6 +32,7 @@ from recsys.embeddings import batch_embed_with_cache
 from recsys.filter import apply_filter
 from recsys.matcher import score_matcher
 from recsys.types import EmbeddingVector
+from recsys.weather_hook import WeatherAdjustment, adjust_preference_for_weather
 
 EmbedFn = Callable[[list[str]], list[EmbeddingVector]]
 
@@ -85,6 +87,7 @@ class ScoringPipeline:
         command: str | None,
         total_candidates: int,
         k: int,
+        weather: WeatherSnapshot | None = None,
     ) -> RecommendationFeed:
         return build_recommendation_feed(
             [],
@@ -95,6 +98,7 @@ class ScoringPipeline:
             user_command=command,
             total_candidates=total_candidates,
             k=k,
+            weather=weather,
         )
 
     def run(
@@ -108,6 +112,15 @@ class ScoringPipeline:
         """Run the full pipeline and return a ranked :class:`RecommendationFeed`."""
         k = k or self.config.k
 
+        weather_adjustment: WeatherAdjustment = adjust_preference_for_weather(
+            preference,
+            client=self._amap_client,
+        )
+        preference = weather_adjustment.preference
+        weather = weather_adjustment.weather
+        if weather and weather.injected_rule:
+            logger.info("weather hook: %s", weather.injected_rule)
+
         candidates = retrieve_candidates(
             preference, self.config, client=self._amap_client
         )
@@ -120,6 +133,7 @@ class ScoringPipeline:
                 command=command,
                 total_candidates=0,
                 k=k,
+                weather=weather,
             )
 
         if self._needs_filter(preference):
@@ -142,6 +156,7 @@ class ScoringPipeline:
                 command=command,
                 total_candidates=total_candidates,
                 k=k,
+                weather=weather,
             )
 
         logger.debug(
@@ -170,4 +185,5 @@ class ScoringPipeline:
             user_command=command,
             total_candidates=total_candidates,
             k=k,
+            weather=weather,
         )

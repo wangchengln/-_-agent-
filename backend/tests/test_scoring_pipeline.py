@@ -13,8 +13,25 @@ from recsys.scoring import ScoringPipeline
 
 
 class FakeAmapClient:
-    def __init__(self, *, around_results: list[POIItem] | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        around_results: list[POIItem] | None = None,
+        weather_info: WeatherInfo | None = None,
+    ) -> None:
         self.around_results = around_results if around_results is not None else []
+        self.weather_info = weather_info
+
+    def weather(self, city: str) -> WeatherInfo:
+        if self.weather_info is None:
+            from tools.amap_client import WeatherCast, WeatherLive
+
+            return WeatherInfo(
+                city="上海",
+                lives=[WeatherLive(city="上海", weather="晴")],
+                casts=[WeatherCast(dayweather="晴")],
+            )
+        return self.weather_info
 
     def search_around(
         self,
@@ -189,6 +206,33 @@ def test_collaborative_only_when_no_soft_prefs() -> None:
     print("collaborative-only path OK")
 
 
+def test_pipeline_rainy_weather_attaches_snapshot() -> None:
+    from tools.amap_client import WeatherCast, WeatherInfo, WeatherLive
+
+    rainy = WeatherInfo(
+        city="上海",
+        adcode="310100",
+        lives=[WeatherLive(city="上海", weather="小雨", temperature="18")],
+        casts=[WeatherCast(dayweather="小雨")],
+    )
+    candidates = [
+        _poi("outdoor", tags=["室外"], description="室外 公园"),
+        _poi("indoor", tags=["室内"], description="室内 展览"),
+    ]
+    pipeline = ScoringPipeline(
+        ScoringConfig(),
+        amap_client=FakeAmapClient(around_results=candidates, weather_info=rainy),
+        embed_fn=_embed_from({}),
+    )
+    feed = pipeline.run(_anchor_pref())
+    assert feed.weather is not None
+    assert feed.weather.is_rainy
+    assert feed.weather.injected_rule is not None
+    assert "indoor" in feed.poi_ids
+    assert "outdoor" not in feed.poi_ids
+    print("rainy weather pipeline OK")
+
+
 if __name__ == "__main__":
     test_pipeline_end_to_end_filter_match_attenuate()
     test_pipeline_respects_k()
@@ -196,4 +240,5 @@ if __name__ == "__main__":
     test_pipeline_empty_pool()
     test_orchestration_predicates()
     test_collaborative_only_when_no_soft_prefs()
+    test_pipeline_rainy_weather_attaches_snapshot()
     print("ALL TESTS PASSED")

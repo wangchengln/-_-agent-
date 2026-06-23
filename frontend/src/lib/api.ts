@@ -3,6 +3,11 @@
  * Custom SSE parser for POST requests (native EventSource only supports GET).
  */
 
+import type {
+  BuildItineraryRequest,
+  BuildItineraryResponse,
+} from "./recommend-types";
+
 const API_BASE =
   typeof window !== "undefined"
     ? `http://${window.location.hostname}:8002/api`
@@ -341,6 +346,34 @@ export async function createSkillTemplate(
   content: string
 ): Promise<void> {
   await saveFile(`skills/${name}/SKILL.md`, content);
+}
+
+/**
+ * Build a weekend itinerary from POIs selected in the current feed.
+ */
+export async function buildItinerary(
+  request: BuildItineraryRequest
+): Promise<BuildItineraryResponse> {
+  const resp = await fetch(`${API_BASE}/itinerary`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+
+  if (!resp.ok) {
+    let detail: { code?: string; message?: string } = {};
+    try {
+      const body = await resp.json();
+      detail = (body.detail as typeof detail) ?? body;
+    } catch {
+      // ignore parse errors
+    }
+    const error = new Error(detail.message ?? `Itinerary API error: ${resp.status}`);
+    (error as Error & { code?: string }).code = detail.code;
+    throw error;
+  }
+
+  return resp.json();
 }
 
 /**

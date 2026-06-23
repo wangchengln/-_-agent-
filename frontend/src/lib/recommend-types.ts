@@ -74,6 +74,10 @@ export interface FeedItem {
   poi_id: string;
   name: string;
   type: string;
+  /** GCJ-02 longitude from POIItem.location; null when Amap omits coords. */
+  lng: number | null;
+  /** GCJ-02 latitude from POIItem.location; null when Amap omits coords. */
+  lat: number | null;
   rating: number | null;
   distance_m: number | null;
   cost: string | null;
@@ -85,10 +89,19 @@ export interface FeedItem {
   reason: string;
 }
 
-/**
- * SSE `feed` event payload.
+/** SSE `feed` event payload.
  * Matches `recsys.loop.feed_event`.
  */
+export interface WeatherSnapshot {
+  city: string;
+  adcode: string;
+  summary: string;
+  temperature: string | null;
+  is_rainy: boolean;
+  injected_rule: string | null;
+  fetched: boolean;
+}
+
 export interface RecommendFeedPayload {
   round: number;
   k: number;
@@ -97,6 +110,8 @@ export interface RecommendFeedPayload {
   preference: PreferenceProfile;
   /** Compact four-quadrant text from `PreferenceProfile.to_parser_context()`. */
   preference_summary: string;
+  /** Weather context for this round; null when anchor missing or fetch skipped. */
+  weather: WeatherSnapshot | null;
 }
 
 // ── Other SSE event payloads ───────────────────────────────
@@ -190,6 +205,8 @@ export function isFeedItem(value: unknown): value is FeedItem {
     typeof item.rank === "number" &&
     typeof item.poi_id === "string" &&
     typeof item.name === "string" &&
+    (item.lng === null || typeof item.lng === "number") &&
+    (item.lat === null || typeof item.lat === "number") &&
     typeof item.reason === "string" &&
     Array.isArray(item.tags) &&
     Array.isArray(item.photos)
@@ -206,7 +223,9 @@ export function isRecommendFeedPayload(value: unknown): value is RecommendFeedPa
     payload.items.every(isFeedItem) &&
     typeof payload.preference === "object" &&
     payload.preference !== null &&
-    typeof payload.preference_summary === "string"
+    typeof payload.preference_summary === "string" &&
+    (payload.weather === null ||
+      (typeof payload.weather === "object" && payload.weather !== null))
   );
 }
 
@@ -238,4 +257,136 @@ export function buildAmapMarkerUrl(
     name,
   });
   return `https://uri.amap.com/marker?${params.toString()}`;
+}
+
+// ── Itinerary (Day 6.3 / 6.4 / 6.5) ───────────────────────
+
+export type TransportMode = "walking" | "driving" | "transit";
+
+export const MIN_ITINERARY_STOPS = 2;
+export const MAX_ITINERARY_STOPS = 5;
+
+export interface ItineraryStop {
+  order: number;
+  poi_id: string;
+  name: string;
+  type: string;
+  lng: number | null;
+  lat: number | null;
+  address: string;
+  arrive_at: string;
+  leave_at: string;
+  dwell_min: number;
+}
+
+export interface ItineraryLeg {
+  from_poi_id: string;
+  to_poi_id: string;
+  mode: TransportMode;
+  distance_m: number;
+  duration_s: number;
+  depart_at: string;
+  arrive_at: string;
+  path: number[][];
+  estimated: boolean;
+}
+
+export interface WeekendItinerary {
+  session_id: string;
+  round: number | null;
+  anchor: GeoLocation | null;
+  transport_mode: TransportMode;
+  day_start: string;
+  day_end: string;
+  stops: ItineraryStop[];
+  legs: ItineraryLeg[];
+  total_distance_m: number;
+  total_travel_min: number;
+  total_dwell_min: number;
+  weather: WeatherSnapshot | null;
+  warnings: string[];
+  generated_at: number;
+}
+
+export interface BuildItineraryRequest {
+  session_id: string;
+  poi_ids: string[];
+  transport_mode?: TransportMode;
+  day_start?: string;
+  day_end?: string;
+  anchor_poi_id?: string | null;
+}
+
+export interface BuildItineraryResponse {
+  itinerary: WeekendItinerary;
+  warnings: string[];
+}
+
+export type ItineraryErrorCode =
+  | "no_feed"
+  | "poi_not_found"
+  | "missing_coords"
+  | "invalid_anchor_poi"
+  | "internal_error";
+
+export const ITINERARY_ERROR_CODES: readonly ItineraryErrorCode[] = [
+  "no_feed",
+  "poi_not_found",
+  "missing_coords",
+  "invalid_anchor_poi",
+  "internal_error",
+] as const;
+
+export interface ItineraryErrorPayload {
+  code: ItineraryErrorCode;
+  message: string;
+}
+
+export function isItineraryErrorCode(value: unknown): value is ItineraryErrorCode {
+  return (
+    typeof value === "string" &&
+    (ITINERARY_ERROR_CODES as readonly string[]).includes(value)
+  );
+}
+
+export function isWeekendItinerary(value: unknown): value is WeekendItinerary {
+  if (!value || typeof value !== "object") return false;
+  const v = value as Record<string, unknown>;
+  return Array.isArray(v.stops) && typeof v.transport_mode === "string";
+}
+
+export function isBuildItineraryResponse(value: unknown): value is BuildItineraryResponse {
+  if (!value || typeof value !== "object") return false;
+  const v = value as Record<string, unknown>;
+  return isWeekendItinerary(v.itinerary);
+}
+
+/** Format itinerary summary line for toolbar / toast. */
+export function formatItinerarySummary(itinerary: WeekendItinerary): string {
+  const last = itinerary.stops[itinerary.stops.length - 1];
+  const end = last?.leave_at ?? itinerary.day_end;
+  return `${itinerary.stops.length} 站 · ${itinerary.day_start}–${end} · 通勤 ${itinerary.total_travel_min} 分钟`;
+}
+
+const TRANSPORT_LABELS: Record<TransportMode, string> = {
+  walking: "步行",
+  driving: "驾车",
+  transit: "公交",
+};
+
+export function formatTransportMode(mode: TransportMode): string {
+  return TRANSPORT_LABELS[mode];
+}
+
+/** Format meters for leg / total distance display. */
+export function formatMeters(distanceM: number): string {
+  if (distanceM >= 1000) return `${(distanceM / 1000).toFixed(1)} km`;
+  return `${Math.round(distanceM)} m`;
+}
+
+export function formatDurationMinutes(minutes: number): string {
+  if (minutes < 60) return `${minutes} 分钟`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m > 0 ? `${h} 小时 ${m} 分钟` : `${h} 小时`;
 }

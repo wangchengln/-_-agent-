@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field, model_validator
 
 from domain.poi import POIItem
 from domain.preference import PreferenceProfile
+from domain.weather import WeatherSnapshot
 
 
 class ScoreBreakdown(BaseModel):
@@ -66,6 +67,10 @@ class RecommendationFeed(BaseModel):
         description="Candidate pool size before top-K truncation",
     )
     k: int = Field(default=5, ge=1, description="Requested top-K size")
+    weather: WeatherSnapshot | None = Field(
+        default=None,
+        description="Weather context for this round (Day 6.2)",
+    )
 
     @model_validator(mode="after")
     def validate_ranking(self) -> Self:

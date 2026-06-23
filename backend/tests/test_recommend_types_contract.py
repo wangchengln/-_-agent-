@@ -26,6 +26,8 @@ FEED_ITEM_KEYS = frozenset(
         "poi_id",
         "name",
         "type",
+        "lng",
+        "lat",
         "rating",
         "distance_m",
         "cost",
@@ -45,6 +47,7 @@ FEED_PAYLOAD_KEYS = frozenset(
         "items",
         "preference",
         "preference_summary",
+        "weather",
     }
 )
 
@@ -74,6 +77,8 @@ def test_feed_item_payload_keys() -> None:
         assert set(payload.keys()) == FEED_ITEM_KEYS
         assert isinstance(payload["reason"], str) and payload["reason"]
         assert payload["poi_id"] == scored.item.id
+        assert payload["lng"] == scored.item.location.lng
+        assert payload["lat"] == scored.item.location.lat
     print("feed_item_payload keys OK")
 
 
@@ -86,6 +91,7 @@ def test_feed_event_payload_keys() -> None:
     assert len(event.payload["items"]) == len(feed.items)
     assert set(event.payload["preference"].keys()) == PREFERENCE_KEYS
     assert isinstance(event.payload["preference_summary"], str)
+    assert event.payload["weather"] is None
     print("feed_event payload keys OK")
 
 
@@ -129,6 +135,8 @@ def test_sample_feed_serializes_for_frontend() -> None:
     assert serialized["k"] == feed.k
     assert len(serialized["items"]) == 3
     assert serialized["items"][0]["name"] == "武康路历史文化名街"
+    assert serialized["items"][0]["lng"] == 121.4374
+    assert serialized["items"][0]["lat"] == 31.2043
     print("sample_feed JSON round-trip OK")
 
 
