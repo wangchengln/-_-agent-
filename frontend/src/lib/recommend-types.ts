@@ -89,6 +89,53 @@ export interface FeedItem {
   reason: string;
 }
 
+// ── POI detail (Phase 2) ─────────────────────────────────
+
+export interface PoiReview {
+  id?: string | null;
+  author: string;
+  rating: number | null;
+  content: string;
+  created_at?: string | null;
+  photos: string[];
+  source: string;
+}
+
+export interface PoiDetail {
+  poi_id: string;
+  name: string;
+  type: string;
+  address: string;
+  lng: number | null;
+  lat: number | null;
+  rating: number | null;
+  cost: string | null;
+  tel: string | null;
+  open_time: string | null;
+  website: string | null;
+  tags: string[];
+  photos: string[];
+  distance_m: number | null;
+  score: number | null;
+  rank: number | null;
+  reason: string | null;
+  reviews: PoiReview[];
+  reviews_total: number | null;
+  reviews_fetched: boolean;
+  reviews_source: string;
+}
+
+export interface PoiDetailErrorPayload {
+  code: string;
+  message: string;
+}
+
+export function isPoiDetail(value: unknown): value is PoiDetail {
+  if (!value || typeof value !== "object") return false;
+  const v = value as Record<string, unknown>;
+  return typeof v.poi_id === "string" && typeof v.name === "string" && Array.isArray(v.reviews);
+}
+
 /** SSE `feed` event payload.
  * Matches `recsys.loop.feed_event`.
  */

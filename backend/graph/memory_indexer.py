@@ -47,6 +47,26 @@ class MemoryIndexer:
         if current_hash and current_hash != stored_hash:
             self.rebuild_index()
 
+    def ensure_ready(self) -> None:
+        """Load persisted index when unchanged; rebuild only if MEMORY.md changed."""
+        current_hash = self._get_file_hash()
+        if not current_hash:
+            self._index = None
+            return
+
+        stored_hash = self._get_stored_hash()
+        has_cache = self._storage_dir.exists() and any(
+            p.name != ".memory_hash" for p in self._storage_dir.iterdir()
+        )
+
+        if current_hash == stored_hash and has_cache:
+            index = self._load_index()
+            if index is not None:
+                print("✅ Memory index loaded from cache")
+                return
+
+        self.rebuild_index()
+
     def rebuild_index(self) -> None:
         """Read MEMORY.md, split into chunks, build vector index, persist."""
         if not self._memory_path.exists():

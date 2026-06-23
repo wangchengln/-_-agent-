@@ -14,8 +14,8 @@ export default function Header({ onToggleLearnMode, learnModeOpen }: Props) {
   const { sidebarOpen, toggleSidebar, recommendMode, setRecommendMode } = useApp();
 
   const modeOptions = [
-    { enabled: false, label: "对话", icon: MessageSquare, title: "通用对话模式" },
-    { enabled: true, label: "推荐", icon: MapPin, title: "周末出行 IRF 推荐模式" },
+    { enabled: false, label: "通用助手", icon: MessageSquare, title: "通用对话场景" },
+    { enabled: true, label: "周末出行", icon: MapPin, title: "周末出行 · 对话 + 推荐双栏" },
   ] as const;
 
   return (
@@ -95,7 +95,7 @@ export default function Header({ onToggleLearnMode, learnModeOpen }: Props) {
           className="flex items-center rounded-lg p-0.5 shrink-0"
           style={{ background: "var(--accent-bg)", border: "1px solid var(--border)" }}
           role="tablist"
-          aria-label="应用模式"
+          aria-label="应用场景"
         >
           {modeOptions.map(({ enabled, label, icon: Icon, title }) => {
             const active = recommendMode === enabled;

@@ -1,14 +1,29 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { ArrowUp, Loader2 } from "lucide-react";
 import { useApp } from "@/lib/store";
 
 export default function ChatInput() {
   const [text, setText] = useState("");
-  const { sendMessage, isStreaming, isCompressing } = useApp();
+  const { sendMessage, isStreaming, isCompressing, chatDraft, chatFocusNonce } =
+    useApp();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const disabled = isStreaming || isCompressing;
+
+  useEffect(() => {
+    if (!chatDraft) return;
+    setText(chatDraft);
+    requestAnimationFrame(() => {
+      const el = textareaRef.current;
+      if (!el) return;
+      el.focus();
+      el.style.height = "auto";
+      el.style.height = Math.min(el.scrollHeight, 160) + "px";
+      const len = chatDraft.length;
+      el.setSelectionRange(len, len);
+    });
+  }, [chatDraft, chatFocusNonce]);
 
   const handleSubmit = useCallback(() => {
     if (!text.trim() || disabled) return;
@@ -18,24 +33,31 @@ export default function ChatInput() {
   }, [text, disabled, sendMessage]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmit(); }
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
   };
 
   const handleInput = () => {
     const el = textareaRef.current;
-    if (el) { el.style.height = "auto"; el.style.height = Math.min(el.scrollHeight, 160) + "px"; }
+    if (el) {
+      el.style.height = "auto";
+      el.style.height = Math.min(el.scrollHeight, 160) + "px";
+    }
   };
 
   return (
     <div className="px-4 py-3 shrink-0">
       <div className="max-w-4xl mx-auto">
-        <div
-          className="glass-input rounded-lg flex items-end gap-2 px-4 py-2.5 transition-shadow hover:shadow-md"
-        >
+        <div className="glass-input rounded-lg flex items-end gap-2 px-4 py-2.5 transition-shadow hover:shadow-md">
           <textarea
             ref={textareaRef}
             value={text}
-            onChange={(e) => { setText(e.target.value); handleInput(); }}
+            onChange={(e) => {
+              setText(e.target.value);
+              handleInput();
+            }}
             onKeyDown={handleKeyDown}
             placeholder="输入消息..."
             rows={1}
@@ -48,7 +70,11 @@ export default function ChatInput() {
             className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-white disabled:opacity-25 transition-all active:scale-95"
             style={{ background: "var(--accent)" }}
           >
-            {disabled ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowUp className="w-4 h-4" />}
+            {disabled ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <ArrowUp className="w-4 h-4" />
+            )}
           </button>
         </div>
       </div>

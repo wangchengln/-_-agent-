@@ -1,6 +1,8 @@
 """Fufan-OpenClaw Backend — FastAPI Entry Point"""
 
+import asyncio
 import os
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -13,21 +15,33 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Startup: scan skills, initialize agent, build memory index."""
-    from tools.skills_scanner import scan_skills
-    from graph.agent import agent_manager
+def _warm_memory_index(base_dir: Path) -> None:
     from graph.memory_indexer import get_memory_indexer
 
+    t0 = time.perf_counter()
+    indexer = get_memory_indexer(base_dir)
+    indexer.ensure_ready()
+    print(f"Memory index ready in {time.perf_counter() - t0:.2f}s")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Startup: scan skills, initialize agent; memory index loads in background."""
+    from tools.skills_scanner import scan_skills
+    from graph.agent import agent_manager
+
+    t0 = time.perf_counter()
     scan_skills(BASE_DIR)
     agent_manager.initialize(BASE_DIR)
+    print(f"Core startup in {time.perf_counter() - t0:.2f}s")
 
-    # Initialize memory indexer for RAG mode
-    indexer = get_memory_indexer(BASE_DIR)
-    indexer.rebuild_index()
+    # Memory index can call embedding APIs — never block HTTP readiness on it.
+    if os.getenv("SKIP_MEMORY_INDEX_ON_STARTUP", "").lower() in ("1", "true", "yes"):
+        print("Memory index warm-up skipped (SKIP_MEMORY_INDEX_ON_STARTUP)")
+    else:
+        asyncio.create_task(asyncio.to_thread(_warm_memory_index, BASE_DIR))
 
-    print("✅ fufan OpenClaw backend ready")
+    print("fufan OpenClaw backend ready")
     yield
 
 
@@ -49,10 +63,12 @@ from api.tokens import router as tokens_router
 from api.compress import router as compress_router
 from api.config_api import router as config_router
 from api.itinerary import router as itinerary_router
+from api.poi import router as poi_router
 
 app.include_router(chat_router, prefix="/api")
 app.include_router(recommend_router, prefix="/api")
 app.include_router(itinerary_router, prefix="/api")
+app.include_router(poi_router, prefix="/api")
 app.include_router(files_router, prefix="/api")
 app.include_router(sessions_router, prefix="/api")
 app.include_router(tokens_router, prefix="/api")

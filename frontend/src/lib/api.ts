@@ -6,6 +6,7 @@
 import type {
   BuildItineraryRequest,
   BuildItineraryResponse,
+  PoiDetail,
 } from "./recommend-types";
 
 const API_BASE =
@@ -146,7 +147,14 @@ export async function saveFile(path: string, content: string): Promise<void> {
  * List all sessions.
  */
 export async function listSessions(): Promise<
-  Array<{ id: string; title: string; updated_at: number }>
+  Array<{
+    id: string;
+    title: string;
+    updated_at: number;
+    has_irf?: boolean;
+    irf_round?: number | null;
+    irf_summary?: string | null;
+  }>
 > {
   const resp = await fetch(`${API_BASE}/sessions`);
   if (!resp.ok) throw new Error(`Failed to list sessions: ${resp.status}`);
@@ -211,6 +219,26 @@ export async function getSessionHistory(
     `${API_BASE}/sessions/${encodeURIComponent(sessionId)}/history`
   );
   if (!resp.ok) throw new Error(`Failed to get session history: ${resp.status}`);
+  return resp.json();
+}
+
+/** Persisted IRF state for session restore (Phase 0 unified layout). */
+export interface SessionIrfPayload {
+  session_id: string;
+  round: number;
+  next_round: number;
+  preference: import("./recommend-types").PreferenceProfile;
+  command_history: string[];
+  last_command: string | null;
+  feed: import("./recommend-types").RecommendFeedPayload | null;
+  itinerary: import("./recommend-types").WeekendItinerary | null;
+}
+
+export async function getSessionIrf(sessionId: string): Promise<SessionIrfPayload> {
+  const resp = await fetch(
+    `${API_BASE}/sessions/${encodeURIComponent(sessionId)}/irf`
+  );
+  if (!resp.ok) throw new Error(`Failed to get session IRF: ${resp.status}`);
   return resp.json();
 }
 
@@ -373,6 +401,29 @@ export async function buildItinerary(
     throw error;
   }
 
+  return resp.json();
+}
+
+/** Fetch enriched POI detail (Amap detail + user reviews). */
+export async function getPoiDetail(
+  sessionId: string,
+  poiId: string
+): Promise<PoiDetail> {
+  const resp = await fetch(
+    `${API_BASE}/poi/${encodeURIComponent(poiId)}?session_id=${encodeURIComponent(sessionId)}`
+  );
+  if (!resp.ok) {
+    let detail: { code?: string; message?: string } = {};
+    try {
+      const body = await resp.json();
+      detail = (body.detail as typeof detail) ?? body;
+    } catch {
+      // ignore
+    }
+    const error = new Error(detail.message ?? `POI detail API error: ${resp.status}`);
+    (error as Error & { code?: string }).code = detail.code;
+    throw error;
+  }
   return resp.json();
 }
 

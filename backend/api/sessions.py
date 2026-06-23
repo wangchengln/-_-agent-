@@ -72,6 +72,22 @@ async def get_session_history(session_id: str):
     return {"session_id": session_id, "messages": messages}
 
 
+@router.get("/sessions/{session_id}/irf")
+async def get_session_irf(session_id: str):
+    """Get persisted IRF recommendation state for frontend session restore."""
+    from recsys.loop import build_irf_restore_payload
+
+    data = session_manager._read_file(session_id)
+    if not data:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    state = session_manager.get_irf_state(session_id)
+    return {
+        "session_id": session_id,
+        **build_irf_restore_payload(state),
+    }
+
+
 @router.post("/sessions/{session_id}/generate-title")
 async def generate_title(session_id: str):
     """Use DeepSeek to generate a short title from the first conversation turn."""

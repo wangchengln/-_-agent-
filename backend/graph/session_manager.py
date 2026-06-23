@@ -141,7 +141,7 @@ class SessionManager:
         return data
 
     def list_sessions(self) -> list[dict[str, Any]]:
-        """List all sessions with metadata."""
+        """List all sessions with metadata and optional IRF summary."""
         assert self._sessions_dir is not None
         sessions: list[dict[str, Any]] = []
         for f in sorted(self._sessions_dir.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True):
@@ -150,17 +150,45 @@ class SessionManager:
                 if isinstance(raw, dict):
                     title = raw.get("title", f.stem)
                     updated_at = raw.get("updated_at", f.stat().st_mtime)
+                    irf_raw = self._normalize_irf_raw(raw.get("irf"))
                 else:
                     title = f.stem
                     updated_at = f.stat().st_mtime
+                    irf_raw = None
             except Exception:
                 title = f.stem
                 updated_at = f.stat().st_mtime
+                irf_raw = None
+
+            irf_summary: str | None = None
+            irf_round: int | None = None
+            has_irf = False
+            if irf_raw:
+                command_history = irf_raw.get("command_history") or []
+                current_feed = irf_raw.get("current_feed")
+                if command_history:
+                    irf_summary = str(command_history[-1])
+                    has_irf = True
+                if isinstance(current_feed, dict):
+                    irf_round = current_feed.get("round")
+                    has_irf = True
+                    if not irf_summary:
+                        items = current_feed.get("items") or []
+                        if items:
+                            first = items[0]
+                            if isinstance(first, dict):
+                                item_data = first.get("item") or first
+                                name = item_data.get("name") if isinstance(item_data, dict) else None
+                                if name:
+                                    irf_summary = f"推荐 · {name}"
 
             sessions.append({
                 "id": f.stem,
                 "title": title,
                 "updated_at": updated_at,
+                "has_irf": has_irf,
+                "irf_round": irf_round,
+                "irf_summary": irf_summary,
             })
         return sessions
 

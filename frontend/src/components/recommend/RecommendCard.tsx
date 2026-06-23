@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ExternalLink, ImageOff, MapPin, Star } from "lucide-react";
+import { Check, ExternalLink, ImageOff, MapPin, Route, Star } from "lucide-react";
 import type { FeedItem, GeoLocation } from "@/lib/recommend-types";
 import { formatFeedDistance } from "@/lib/recommend-types";
 
@@ -8,9 +8,12 @@ interface Props {
   item: FeedItem;
   anchor?: GeoLocation | null;
   dimmed?: boolean;
+  /** Carousel layout: card opens detail; separate itinerary button */
+  carousel?: boolean;
   selectable?: boolean;
   selected?: boolean;
   selectionDisabled?: boolean;
+  onOpenDetail?: () => void;
   onToggleSelect?: () => void;
 }
 
@@ -46,16 +49,23 @@ export default function RecommendCard({
   item,
   anchor,
   dimmed,
+  carousel = false,
   selectable = false,
   selected = false,
   selectionDisabled = false,
+  onOpenDetail,
   onToggleSelect,
 }: Props) {
   const photo = item.photos[0];
   const meta = buildMetaLine(item);
   const mapUrl = buildMapSearchUrl(item, anchor);
+  const showSelectOnCover = selectable && !carousel;
 
   const handleCardClick = () => {
+    if (carousel && onOpenDetail) {
+      onOpenDetail();
+      return;
+    }
     if (!selectable || selectionDisabled || !onToggleSelect) return;
     onToggleSelect();
   };
@@ -65,7 +75,9 @@ export default function RecommendCard({
       onClick={handleCardClick}
       className={`rounded-xl overflow-hidden transition-all animate-fade-in-scale ${
         dimmed ? "opacity-60" : ""
-      } ${selectable ? "cursor-pointer" : ""} ${selectionDisabled && !selected ? "opacity-75" : ""}`}
+      } ${carousel || selectable ? "cursor-pointer" : ""} ${
+        selectionDisabled && !selected && !carousel ? "opacity-75" : ""
+      }`}
       style={{
         background: "var(--bg-surface)",
         border: selected
@@ -98,7 +110,7 @@ export default function RecommendCard({
         >
           #{item.rank}
         </span>
-        {selectable && (
+        {showSelectOnCover && (
           <button
             type="button"
             onClick={(e) => {
@@ -120,6 +132,14 @@ export default function RecommendCard({
             {selected ? <Check className="w-4 h-4" /> : null}
           </button>
         )}
+        {carousel && selected && (
+          <span
+            className="absolute top-2 right-2 px-2 py-0.5 rounded-md text-[10px] font-medium"
+            style={{ background: "var(--accent)", color: "#fff" }}
+          >
+            已选
+          </span>
+        )}
         {!selectable && item.score != null && (
           <span
             className="absolute top-2 right-2 px-2 py-0.5 rounded-md text-[10px] font-mono"
@@ -139,9 +159,12 @@ export default function RecommendCard({
       </div>
 
       {/* Body */}
-      <div className="p-4 space-y-3">
+      <div className={`${carousel ? "p-3.5" : "p-4"} space-y-2.5`}>
         <div>
-          <h3 className="text-[15px] font-semibold leading-snug" style={{ color: "var(--text-primary)" }}>
+          <h3
+            className={`${carousel ? "text-[14px]" : "text-[15px]"} font-semibold leading-snug line-clamp-2`}
+            style={{ color: "var(--text-primary)" }}
+          >
             {item.name}
           </h3>
           <p className="text-[11px] mt-0.5 truncate" style={{ color: "var(--text-muted)" }}>
@@ -158,7 +181,7 @@ export default function RecommendCard({
 
         {item.tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
-            {item.tags.slice(0, 4).map((tag) => (
+            {item.tags.slice(0, carousel ? 3 : 4).map((tag) => (
               <span
                 key={tag}
                 className="px-2 py-0.5 rounded-full text-[10px]"
@@ -174,22 +197,60 @@ export default function RecommendCard({
           </div>
         )}
 
-        <p className="text-[12px] leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+        <p
+          className={`${carousel ? "text-[11px] line-clamp-3" : "text-[12px]"} leading-relaxed`}
+          style={{ color: "var(--text-secondary)" }}
+        >
           {item.reason}
         </p>
 
-        <a
-          href={mapUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
-          className="inline-flex items-center gap-1.5 text-[11px] font-medium transition-opacity hover:opacity-80"
-          style={{ color: "var(--accent)" }}
-        >
-          <MapPin className="w-3.5 h-3.5" />
-          在高德地图查看
-          <ExternalLink className="w-3 h-3 opacity-70" />
-        </a>
+        {carousel ? (
+          <div className="flex gap-2 pt-0.5" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => {
+                if (!selectionDisabled || selected) {
+                  onToggleSelect?.();
+                }
+              }}
+              disabled={selectionDisabled && !selected}
+              className="flex-1 inline-flex items-center justify-center gap-1 px-2.5 py-2 rounded-lg text-[11px] font-medium transition-opacity hover:opacity-90 disabled:opacity-40"
+              style={{
+                background: selected ? "var(--accent)" : "var(--accent-bg)",
+                color: selected ? "#fff" : "var(--accent)",
+                border: selected ? "none" : "1px solid var(--border-accent)",
+              }}
+            >
+              <Route className="w-3.5 h-3.5" />
+              {selected ? "已加入" : "加入行程"}
+            </button>
+            <button
+              type="button"
+              onClick={onOpenDetail}
+              className="px-2.5 py-2 rounded-lg text-[11px] font-medium transition-opacity hover:opacity-80"
+              style={{
+                color: "var(--text-secondary)",
+                border: "1px solid var(--border)",
+                background: "var(--bg-page)",
+              }}
+            >
+              详情
+            </button>
+          </div>
+        ) : (
+          <a
+            href={mapUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex items-center gap-1.5 text-[11px] font-medium transition-opacity hover:opacity-80"
+            style={{ color: "var(--accent)" }}
+          >
+            <MapPin className="w-3.5 h-3.5" />
+            在高德地图查看
+            <ExternalLink className="w-3 h-3 opacity-70" />
+          </a>
+        )}
       </div>
     </article>
   );

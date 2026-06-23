@@ -186,6 +186,55 @@ def _build_item_reason(scored: ScoredPOIItem, preference: PreferenceProfile) -> 
     return f"{poi.name}：" + "，".join(bits) + "。"
 
 
+def build_feed_payload(
+    feed: RecommendationFeed,
+    preference: PreferenceProfile,
+) -> dict[str, Any]:
+    """Front-end-friendly feed dict (same shape as ``feed_event`` payload)."""
+    scoring_pref = feed.preference_snapshot
+    weather_payload = (
+        feed.weather.model_dump(mode="json") if feed.weather is not None else None
+    )
+    return {
+        "round": feed.round,
+        "k": feed.k,
+        "total_candidates": feed.total_candidates,
+        "items": [
+            feed_item_payload(item, scoring_pref) for item in feed.items
+        ],
+        "preference": preference.model_dump(mode="json"),
+        "preference_summary": preference.to_parser_context(),
+        "weather": weather_payload,
+    }
+
+
+def build_irf_restore_payload(state: IRFSessionState) -> dict[str, Any]:
+    """Serialize persisted IRF state for session restore on the frontend."""
+    preference = state.preference
+    feed_payload = None
+    display_round = 0
+
+    if state.current_feed is not None:
+        feed_payload = build_feed_payload(state.current_feed, preference)
+        display_round = state.current_feed.round
+
+    itinerary_payload = (
+        state.current_itinerary.model_dump(mode="json")
+        if state.current_itinerary is not None
+        else None
+    )
+
+    return {
+        "round": display_round,
+        "next_round": state.round,
+        "preference": preference.model_dump(mode="json"),
+        "command_history": list(state.command_history),
+        "last_command": state.command_history[-1] if state.command_history else None,
+        "feed": feed_payload,
+        "itinerary": itinerary_payload,
+    }
+
+
 def feed_event(
     feed: RecommendationFeed,
     preference: PreferenceProfile,
@@ -195,23 +244,9 @@ def feed_event(
     ``preference`` is the persisted Parser profile (sidebar). Item ``reason`` text
     uses ``feed.preference_snapshot`` (may include ephemeral weather adjustments).
     """
-    scoring_pref = feed.preference_snapshot
-    weather_payload = (
-        feed.weather.model_dump(mode="json") if feed.weather is not None else None
-    )
     return LoopEvent(
         type="feed",
-        payload={
-            "round": feed.round,
-            "k": feed.k,
-            "total_candidates": feed.total_candidates,
-            "items": [
-                feed_item_payload(item, scoring_pref) for item in feed.items
-            ],
-            "preference": preference.model_dump(mode="json"),
-            "preference_summary": preference.to_parser_context(),
-            "weather": weather_payload,
-        },
+        payload=build_feed_payload(feed, preference),
     )
 
 

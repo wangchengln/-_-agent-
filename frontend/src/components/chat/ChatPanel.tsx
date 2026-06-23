@@ -10,9 +10,11 @@ import { Sparkles, FileCode, MonitorPlay, Settings } from "lucide-react";
 interface Props {
   onOpenRaw: () => void;
   onOpenCanvas: () => void;
+  /** Compact header when embedded in weekend dual-column layout */
+  embedded?: boolean;
 }
 
-export default function ChatPanel({ onOpenRaw, onOpenCanvas }: Props) {
+export default function ChatPanel({ onOpenRaw, onOpenCanvas, embedded = false }: Props) {
   const { messages, sessions, sessionId } = useApp();
   const bottomRef = useRef<HTMLDivElement>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -26,12 +28,26 @@ export default function ChatPanel({ onOpenRaw, onOpenCanvas }: Props) {
   return (
     <div className="flex flex-col h-full">
       {/* Chat Header */}
-      <div className="h-14 flex items-center justify-between px-6 shrink-0" style={{ borderBottom: "1px solid var(--border)" }}>
-        <div className="flex items-center gap-2">
-          <span className="text-[14px] font-semibold" style={{ color: "var(--text-primary)" }}>
+      <div
+        className={`${embedded ? "h-12 px-4" : "h-14 px-6"} flex items-center justify-between shrink-0`}
+        style={{ borderBottom: "1px solid var(--border)" }}
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          {embedded && (
+            <span
+              className="text-[10px] font-semibold uppercase tracking-wider shrink-0 px-1.5 py-0.5 rounded"
+              style={{ background: "var(--accent-bg)", color: "var(--accent)" }}
+            >
+              对话
+            </span>
+          )}
+          <span
+            className={`${embedded ? "text-[13px]" : "text-[14px]"} font-semibold truncate`}
+            style={{ color: "var(--text-primary)" }}
+          >
             {currentTitle}
           </span>
-          <span className="relative flex h-2 w-2">
+          <span className="relative flex h-2 w-2 shrink-0">
             <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
           </span>
         </div>
@@ -74,11 +90,20 @@ export default function ChatPanel({ onOpenRaw, onOpenCanvas }: Props) {
               Hi, how can I help?
             </h2>
             <p className="text-[13px] max-w-xs text-center leading-relaxed" style={{ color: "var(--text-muted)" }}>
-              Ask me anything, or try{" "}
-              <span className="font-medium" style={{ color: "var(--accent)" }}>&quot;查询北京天气&quot;</span>
+              {embedded
+                ? "和我聊聊出行想法，右侧会同步更新推荐"
+                : "Ask me anything, or try "}
+              {!embedded && (
+                <span className="font-medium" style={{ color: "var(--accent)" }}>
+                  &quot;查询北京天气&quot;
+                </span>
+              )}
             </p>
             <div className="flex flex-wrap gap-2 mt-5 max-w-md justify-center">
-              {["你好，介绍一下自己", "查询北京天气", "帮我写一段Python代码"].map((hint) => (
+              {(embedded
+                ? ["帮我规划上海周末", "今天适合室外活动吗？", "解释一下当前推荐"]
+                : ["你好，介绍一下自己", "查询北京天气", "帮我写一段Python代码"]
+              ).map((hint) => (
                 <QuickHint key={hint} text={hint} />
               ))}
             </div>
@@ -101,11 +126,13 @@ export default function ChatPanel({ onOpenRaw, onOpenCanvas }: Props) {
 }
 
 function QuickHint({ text }: { text: string }) {
-  const { sendMessage, isStreaming } = useApp();
+  const { sendMessage, isStreaming, isCompressing } = useApp();
+  const disabled = isStreaming || isCompressing;
   return (
     <button
-      onClick={() => !isStreaming && sendMessage(text)}
-      className="px-3 py-1.5 rounded-full text-[12px] transition-all shadow-sm hover:shadow-md"
+      onClick={() => !disabled && sendMessage(text)}
+      disabled={disabled}
+      className="px-3 py-1.5 rounded-full text-[12px] transition-all shadow-sm hover:shadow-md disabled:opacity-50"
       style={{ color: "var(--text-secondary)", background: "var(--bg-surface)", border: "1px solid var(--border)" }}
     >
       {text}

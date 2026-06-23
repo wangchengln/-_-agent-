@@ -156,6 +156,8 @@ export default function Sidebar() {
                     key={s.id}
                     id={s.id}
                     title={s.title}
+                    irfSummary={s.irf_summary}
+                    irfRound={s.irf_round}
                     isActive={sessionId === s.id}
                     onSelect={() => setSessionId(s.id)}
                     onRename={(title) => renameSession(s.id, title)}
@@ -346,6 +348,8 @@ function CollapsibleInfo({
 function SessionItem({
   id,
   title,
+  irfSummary,
+  irfRound,
   isActive,
   onSelect,
   onRename,
@@ -353,6 +357,8 @@ function SessionItem({
 }: {
   id: string;
   title: string;
+  irfSummary?: string | null;
+  irfRound?: number | null;
   isActive: boolean;
   onSelect: () => void;
   onRename: (title: string) => void;
@@ -425,7 +431,7 @@ function SessionItem({
     <div className="relative group" ref={menuRef}>
       <button
         onClick={onSelect}
-        className={`w-full flex items-center gap-2 px-3 py-2 text-[13px] rounded-lg transition-all text-left relative pr-8 ${
+        className={`w-full flex flex-col gap-0.5 px-3 py-2 text-[13px] rounded-lg transition-all text-left relative pr-8 ${
           isActive ? "font-medium shadow-sm" : "hover:opacity-80"
         }`}
         style={
@@ -438,6 +444,16 @@ function SessionItem({
           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full" style={{ background: "var(--accent)" }} />
         )}
         <span className="truncate">{title}</span>
+        {(irfSummary || (irfRound != null && irfRound > 0)) && (
+          <span
+            className="text-[10px] truncate leading-snug"
+            style={{ color: isActive ? "var(--text-muted)" : "var(--text-muted)", opacity: 0.9 }}
+          >
+            {irfRound != null && irfRound > 0 ? `第 ${irfRound} 轮` : ""}
+            {irfRound != null && irfRound > 0 && irfSummary ? " · " : ""}
+            {irfSummary ?? ""}
+          </span>
+        )}
       </button>
 
       <div className="absolute right-1 top-1/2 -translate-y-1/2">

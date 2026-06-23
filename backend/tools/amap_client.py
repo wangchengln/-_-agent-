@@ -313,6 +313,27 @@ class AmapClient:
         pois = payload.get("pois") or []
         return parse_amap_pois(pois, anchor_city=anchor_city, keep_raw=keep_raw)
 
+    def get_poi_detail(
+        self,
+        poi_id: str,
+        *,
+        anchor_city: str | None = None,
+        keep_raw: bool = False,
+    ) -> POIItem:
+        """Fetch a single POI by id (/place/detail)."""
+        poi_id = str(poi_id).strip()
+        if not poi_id:
+            raise AmapApiError("POI id must not be empty")
+        payload = self._request(
+            "place/detail",
+            {"id": poi_id, "extensions": "all"},
+        )
+        raw = self._first_or_error(payload.get("pois") or [], what="POI detail")
+        items = parse_amap_pois([raw], anchor_city=anchor_city, keep_raw=keep_raw)
+        if not items:
+            raise AmapApiError(f"Failed to parse POI detail for {poi_id}")
+        return items[0]
+
     def input_tips(
         self,
         keywords: str,

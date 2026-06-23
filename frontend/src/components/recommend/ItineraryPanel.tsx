@@ -4,11 +4,14 @@ import {
   AlertTriangle,
   ArrowDown,
   Clock,
+  Copy,
   MapPin,
+  MonitorPlay,
   Route,
   X,
 } from "lucide-react";
 import { useApp } from "@/lib/store";
+import { copyItineraryToClipboard } from "@/lib/itinerary-text";
 import {
   formatDurationMinutes,
   formatMeters,
@@ -21,6 +24,7 @@ import AmapMap from "./AmapMap";
 
 interface Props {
   onClose: () => void;
+  onOpenCanvas?: () => void;
 }
 
 function LegRow({ leg }: { leg: ItineraryLeg }) {
@@ -130,11 +134,12 @@ function StopRow({
   );
 }
 
-export default function ItineraryPanel({ onClose }: Props) {
+export default function ItineraryPanel({ onClose, onOpenCanvas }: Props) {
   const {
     currentItinerary,
     activeItineraryStopId,
     setActiveItineraryStopId,
+    pushToast,
   } = useApp();
 
   if (!currentItinerary) {
@@ -155,7 +160,17 @@ export default function ItineraryPanel({ onClose }: Props) {
 
   return (
     <div className="flex flex-col h-full" style={{ background: "var(--bg-surface)" }}>
-      <Header onClose={onClose} />
+      <Header
+        onClose={onClose}
+        onOpenCanvas={onOpenCanvas}
+        onCopy={async () => {
+          const ok = await copyItineraryToClipboard(currentItinerary);
+          pushToast(
+            ok ? "行程文本已复制到剪贴板" : "复制失败，请手动选择复制",
+            { tone: ok ? "success" : "warning" }
+          );
+        }}
+      />
 
       <div className="px-4 pt-3 shrink-0">
         <AmapMap
@@ -235,10 +250,18 @@ export default function ItineraryPanel({ onClose }: Props) {
   );
 }
 
-function Header({ onClose }: { onClose: () => void }) {
+function Header({
+  onClose,
+  onOpenCanvas,
+  onCopy,
+}: {
+  onClose: () => void;
+  onOpenCanvas?: () => void;
+  onCopy?: () => void;
+}) {
   return (
     <div
-      className="h-14 flex items-center justify-between px-4 shrink-0"
+      className="h-14 flex items-center justify-between px-4 shrink-0 gap-2"
       style={{ borderBottom: "1px solid var(--border)" }}
     >
       <div className="flex items-center gap-2 min-w-0">
@@ -247,15 +270,41 @@ function Header({ onClose }: { onClose: () => void }) {
           周末行程
         </span>
       </div>
-      <button
-        type="button"
-        onClick={onClose}
-        className="p-1.5 rounded-lg transition-opacity hover:opacity-70"
-        style={{ color: "var(--text-muted)" }}
-        aria-label="关闭行程面板"
-      >
-        <X className="w-4 h-4" />
-      </button>
+      <div className="flex items-center gap-1 shrink-0">
+        {onCopy && (
+          <button
+            type="button"
+            onClick={onCopy}
+            className="p-1.5 rounded-lg transition-opacity hover:opacity-70"
+            style={{ color: "var(--text-muted)" }}
+            title="复制行程文本"
+            aria-label="复制行程"
+          >
+            <Copy className="w-4 h-4" />
+          </button>
+        )}
+        {onOpenCanvas && (
+          <button
+            type="button"
+            onClick={onOpenCanvas}
+            className="p-1.5 rounded-lg transition-opacity hover:opacity-70"
+            style={{ color: "var(--accent)" }}
+            title="在 Canvas 查看时间轴"
+            aria-label="打开 Canvas"
+          >
+            <MonitorPlay className="w-4 h-4" />
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={onClose}
+          className="p-1.5 rounded-lg transition-opacity hover:opacity-70"
+          style={{ color: "var(--text-muted)" }}
+          aria-label="关闭行程面板"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
     </div>
   );
 }
